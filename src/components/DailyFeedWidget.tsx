@@ -56,7 +56,7 @@ const DailyFeedWidget: React.FC = () => {
         tabIndex={0}
         onKeyDown={handleKeyDown}
         aria-label={`View ${currentItem.type === 'nasa' ? 'Astronomy Picture' : 'Daily Dog Fact'}: ${currentItem.title}`}
-        className="bg-gray-900/50 rounded-3xl overflow-hidden border border-gray-800 col-span-2 relative group cursor-pointer min-h-[200px] focus-visible:ring-2 focus-visible:ring-blue-400 outline-none"
+        className="bg-gray-900/50 rounded-3xl overflow-hidden border border-gray-800 col-span-2 relative group cursor-pointer min-h-[200px] focus-visible:ring-2 focus-visible:ring-blue-400 outline-none active:scale-95 transition-transform"
         onClick={() => setIsOpen(true)}
       >
         {/* Background Image */}
@@ -82,7 +82,7 @@ const DailyFeedWidget: React.FC = () => {
                 {currentItem.type === 'nasa' ? 'Astronomy Picture' : 'Daily Dog Fact'}
               </span>
             </div>
-            <Maximize2 className="text-white/50 opacity-0 group-hover:opacity-100 transition-opacity" size={20} />
+            <Maximize2 className="text-white/50 transition-opacity" size={20} />
           </div>
 
           <div>
