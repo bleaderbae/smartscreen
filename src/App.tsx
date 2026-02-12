@@ -12,17 +12,33 @@ import {
   Settings, 
   User, 
   Home,
-  ChevronRight,
-  Clock
+  CheckCircle,
+  Circle,
+  ListChecks
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getWeather, type WeatherData } from './services/weatherService';
+
+interface Chore {
+  id: string;
+  text: string;
+  completed: boolean;
+}
 
 const App: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Todo List State
+  const [chores, setChores] = useState<Chore[]>([
+    { id: '1', text: 'Morning Dog Walk', completed: false },
+    { id: '2', text: 'Feed Dogs', completed: false },
+    { id: '3', text: 'Pick up Toys', completed: false },
+    { id: '4', text: 'Evening Dog Walk', completed: false },
+    { id: '5', text: 'Water Plants', completed: false },
+  ]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -63,6 +79,12 @@ const App: React.FC = () => {
     }
   };
 
+  const toggleChore = (id: string) => {
+    setChores(chores.map(chore =>
+      chore.id === id ? { ...chore, completed: !chore.completed } : chore
+    ));
+  };
+
   return (
     <div className="flex flex-col h-screen w-screen bg-black text-white p-6 font-sans select-none">
       {/* Top Section: Clock & Date */}
@@ -77,9 +99,9 @@ const App: React.FC = () => {
       </div>
 
       {/* Main Content: Widgets */}
-      <div className="flex-1 grid grid-cols-2 gap-6 overflow-hidden">
+      <div className="flex-1 grid grid-cols-2 gap-6 overflow-y-auto pb-4">
         {/* Weather Widget */}
-        <div className="bg-gray-900/50 rounded-3xl p-6 flex flex-col justify-between border border-gray-800">
+        <div className="bg-gray-900/50 rounded-3xl p-6 flex flex-col justify-between border border-gray-800 min-h-[200px]">
           {loading ? (
              <div className="flex flex-col h-full items-center justify-center">
                <span className="animate-pulse text-gray-400">Loading Weather...</span>
@@ -106,13 +128,35 @@ const App: React.FC = () => {
         </div>
 
         {/* Calendar Widget */}
-        <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800">
+        <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 min-h-[200px]">
           <div className="flex items-center gap-2 mb-4">
             <CalendarIcon className="text-red-400" size={24} />
             <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Next Event</span>
           </div>
           <p className="text-lg font-medium leading-tight">Dinner with Grandparents</p>
           <p className="text-sm text-gray-500 mt-1">6:30 PM - Tonight</p>
+        </div>
+
+        {/* To Do Checklist */}
+        <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2">
+          <div className="flex items-center gap-2 mb-4">
+            <ListChecks className="text-purple-400" size={24} />
+            <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Weekly Chores</span>
+          </div>
+          <ul className="space-y-3">
+            {chores.map((chore) => (
+              <li key={chore.id} className="flex items-center gap-3 cursor-pointer group" onClick={() => toggleChore(chore.id)}>
+                {chore.completed ? (
+                  <CheckCircle className="text-green-400 transition-colors" size={24} />
+                ) : (
+                  <Circle className="text-gray-600 group-hover:text-gray-400 transition-colors" size={24} />
+                )}
+                <span className={`text-lg font-light transition-all ${chore.completed ? 'line-through text-gray-500' : 'text-gray-100'}`}>
+                  {chore.text}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Shopping List */}
