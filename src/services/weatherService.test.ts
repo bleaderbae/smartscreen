@@ -3,7 +3,12 @@ import { getWeather } from './weatherService';
 
 describe('getWeather', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn());
+    // Cross-compatible way to mock fetch for both Vitest and Bun
+    if (typeof vi.stubGlobal === 'function') {
+      vi.stubGlobal('fetch', vi.fn());
+    } else {
+      globalThis.fetch = vi.fn() as any;
+    }
   });
 
   afterEach(() => {
@@ -80,9 +85,64 @@ describe('getWeather', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it('handles errors gracefully', async () => {
+  it('handles points fetch failure', async () => {
     (fetch as any).mockImplementation(() => Promise.resolve({ ok: false, statusText: 'Not Found' }));
 
     await expect(getWeather(0, 0)).rejects.toThrow('Failed to fetch points: Not Found');
+  });
+
+  it('handles forecast fetch failure', async () => {
+    const mockPointsResponse = {
+      ok: true,
+      json: async () => ({
+        properties: {
+          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        },
+      }),
+    };
+
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/points/')) {
+        return Promise.resolve(mockPointsResponse);
+      }
+      if (url.includes('/forecast')) {
+        return Promise.resolve({ ok: false, statusText: 'Internal Server Error' });
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('Failed to fetch forecast: Internal Server Error');
+  });
+
+  it('handles empty forecast periods', async () => {
+    const mockPointsResponse = {
+      ok: true,
+      json: async () => ({
+        properties: {
+          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        },
+      }),
+    };
+
+    const mockForecastResponse = {
+      ok: true,
+      json: async () => ({
+        properties: {
+          periods: [],
+        },
+      }),
+    };
+
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/points/')) {
+        return Promise.resolve(mockPointsResponse);
+      }
+      if (url.includes('/forecast')) {
+        return Promise.resolve(mockForecastResponse);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('No forecast data available');
   });
 });
