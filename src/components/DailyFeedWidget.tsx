@@ -33,6 +33,13 @@ const DailyFeedWidget: React.FC = () => {
 
   const currentItem = feedData[currentFeed];
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsOpen(true);
+    }
+  };
+
   if (loading || !currentItem) {
     return (
       <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2 flex items-center justify-center min-h-[200px]">
@@ -45,7 +52,11 @@ const DailyFeedWidget: React.FC = () => {
     <>
       {/* Widget Card */}
       <div
-        className="bg-gray-900/50 rounded-3xl overflow-hidden border border-gray-800 col-span-2 relative group cursor-pointer min-h-[200px]"
+        role="button"
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        aria-label={`View ${currentItem.type === 'nasa' ? 'Astronomy Picture' : 'Daily Dog Fact'}: ${currentItem.title}`}
+        className="bg-gray-900/50 rounded-3xl overflow-hidden border border-gray-800 col-span-2 relative group cursor-pointer min-h-[200px] focus-visible:ring-2 focus-visible:ring-blue-400 outline-none active:scale-95 transition-transform"
         onClick={() => setIsOpen(true)}
       >
         {/* Background Image */}
@@ -71,7 +82,7 @@ const DailyFeedWidget: React.FC = () => {
                 {currentItem.type === 'nasa' ? 'Astronomy Picture' : 'Daily Dog Fact'}
               </span>
             </div>
-            <Maximize2 className="text-white/50 opacity-0 group-hover:opacity-100 transition-opacity" size={20} />
+            <Maximize2 className="text-white/50 transition-opacity" size={20} />
           </div>
 
           <div>
@@ -92,10 +103,17 @@ const DailyFeedWidget: React.FC = () => {
 
       {/* Expanded Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl animate-fadeIn" onClick={() => setIsOpen(false)}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl animate-fadeIn"
+          onClick={() => setIsOpen(false)}
+        >
           <button
+            aria-label="Close"
             onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
-            className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors bg-white/10 p-2 rounded-full hover:bg-white/20"
+            className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors bg-white/10 p-2 rounded-full hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white outline-none"
           >
             <X size={32} />
           </button>
@@ -126,7 +144,7 @@ const DailyFeedWidget: React.FC = () => {
                 </span>
               </div>
 
-              <h2 className="text-4xl font-light text-white leading-tight">
+              <h2 id="modal-title" className="text-4xl font-light text-white leading-tight">
                 {currentItem.title}
               </h2>
 
