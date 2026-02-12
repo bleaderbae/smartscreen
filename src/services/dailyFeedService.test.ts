@@ -16,7 +16,7 @@ describe('dailyFeedService', () => {
         media_type: 'image'
       };
 
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => mockResponse,
       } as Response);
@@ -34,7 +34,7 @@ describe('dailyFeedService', () => {
     });
 
     it('returns fallback data on failure', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         statusText: 'Internal Server Error'
       } as Response);
@@ -42,11 +42,24 @@ describe('dailyFeedService', () => {
       const result = await getNASAData();
       expect(result.id).toBe('nasa-fallback');
     });
+
+    it('calls fetch with correct URL including API key', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({})
+      });
+      globalThis.fetch = mockFetch;
+
+      await getNASAData();
+
+      // Verifies that the URL is constructed with the fallback or environment variable
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('api_key=DEMO_KEY'));
+    });
   });
 
   describe('getDogData', () => {
     it('returns combined Dog data on success', async () => {
-      global.fetch = vi.fn()
+      globalThis.fetch = vi.fn()
         .mockResolvedValueOnce({ // Dog Image
           ok: true,
           json: async () => ({ message: 'http://dog.com/dog.jpg', status: 'success' })
@@ -68,7 +81,7 @@ describe('dailyFeedService', () => {
     });
 
     it('returns fallback data on failure', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const result = await getDogData();
       expect(result.id).toBe('dog-fallback');

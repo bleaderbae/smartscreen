@@ -8,7 +8,7 @@ export interface FeedItem {
   thumbnailUrl?: string;
 }
 
-const NASA_API_KEY = 'DEMO_KEY';
+const NASA_API_KEY = import.meta.env.VITE_NASA_API_KEY || 'DEMO_KEY';
 const NASA_APOD_URL = `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY}&thumbs=True`;
 
 const DOG_IMAGE_URL = 'https://dog.ceo/api/breeds/image/random';
