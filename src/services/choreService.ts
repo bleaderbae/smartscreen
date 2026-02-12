@@ -31,6 +31,7 @@ export interface Chore {
   color: string;
   frequency: Frequency;
   completed: boolean;
+  assignedTo?: string; // Maps to FAMILY_PROFILES keys
   // logic properties
   dayOfWeek?: number; // 0-6
   isBiweekly?: boolean;
@@ -40,25 +41,25 @@ const RECYCLING_REFERENCE_DATE = '2026-02-09'; // A Monday with recycling
 
 export const INITIAL_CHORES: Chore[] = [
   // DAILY
-  { id: 'd1', text: 'Feed Dogs', icon: PawPrint, color: 'orange', frequency: 'daily', completed: false },
-  { id: 'd2', text: 'Clean up Toys', icon: Blocks, color: 'yellow', frequency: 'daily', completed: false },
-  { id: 'd3', text: 'Water Flowers', icon: Sprout, color: 'pink', frequency: 'daily', completed: false },
+  { id: 'd1', text: 'Feed Dogs', icon: PawPrint, color: 'emerald', frequency: 'daily', completed: false, assignedTo: 'Hunter' },
+  { id: 'd2', text: 'Clean up Toys', icon: Blocks, color: 'emerald', frequency: 'daily', completed: false, assignedTo: 'Hunter' },
+  { id: 'd3', text: 'Water Flowers', icon: Sprout, color: 'rainbow', frequency: 'daily', completed: false, assignedTo: 'Harper' },
   
   // WEEKLY
-  { id: 'w1', text: 'Laundry Day', icon: Shirt, color: 'blue', frequency: 'weekly', completed: false },
-  { id: 'w2', text: 'Fold Clothes', icon: Container, color: 'indigo', frequency: 'weekly', completed: false },
-  { id: 'w3', text: 'Dishwasher', icon: Utensils, color: 'cyan', frequency: 'weekly', completed: false },
-  { id: 'w4', text: 'Dance Class', icon: Music, color: 'purple', frequency: 'weekly', completed: false },
-  { id: 'w5', text: 'Show & Tell', icon: Mic, color: 'yellow', frequency: 'weekly', completed: false, dayOfWeek: 1 },
-  { id: 'w6', text: 'Gas the Car', icon: Fuel, color: 'red', frequency: 'weekly', completed: false },
-  { id: 'w7', text: 'Take out Trash', icon: Trash2, color: 'gray', frequency: 'weekly', completed: false, dayOfWeek: 0 },
-  { id: 'w8', text: 'Recycling', icon: Recycle, color: 'green', frequency: 'weekly', completed: false, dayOfWeek: 1, isBiweekly: true },
+  { id: 'w1', text: 'Laundry Day', icon: Shirt, color: 'pink', frequency: 'weekly', completed: false, assignedTo: 'Mom' },
+  { id: 'w2', text: 'Fold Clothes', icon: Container, color: 'pink', frequency: 'weekly', completed: false, assignedTo: 'Mom' },
+  { id: 'w3', text: 'Dishwasher', icon: Utensils, color: 'rose', frequency: 'weekly', completed: false, assignedTo: 'Dad' },
+  { id: 'w4', text: 'Dance Class', icon: Music, color: 'rainbow', frequency: 'weekly', completed: false, assignedTo: 'Harper' },
+  { id: 'w5', text: 'Show & Tell', icon: Mic, color: 'rainbow', frequency: 'weekly', completed: false, assignedTo: 'Harper', dayOfWeek: 1 },
+  { id: 'w6', text: 'Gas the Car', icon: Fuel, color: 'rose', frequency: 'weekly', completed: false, assignedTo: 'Dad' },
+  { id: 'w7', text: 'Take out Trash', icon: Trash2, color: 'rose', frequency: 'weekly', completed: false, assignedTo: 'Dad', dayOfWeek: 0 },
+  { id: 'w8', text: 'Recycling', icon: Recycle, color: 'rose', frequency: 'weekly', completed: false, assignedTo: 'Dad', dayOfWeek: 1, isBiweekly: true },
 
   // MONTHLY
-  { id: 'm1', text: 'Vacuum House', icon: Wind, color: 'blue', frequency: 'monthly', completed: false },
-  { id: 'm2', text: 'Wet Mop', icon: SprayCan, color: 'cyan', frequency: 'monthly', completed: false },
-  { id: 'm3', text: 'Baseboards', icon: Brush, color: 'orange', frequency: 'monthly', completed: false },
-  { id: 'm4', text: 'Wipe Kitchen', icon: Zap, color: 'yellow', frequency: 'monthly', completed: false },
+  { id: 'm1', text: 'Vacuum House', icon: Wind, color: 'pink', frequency: 'monthly', completed: false, assignedTo: 'Mom' },
+  { id: 'm2', text: 'Wet Mop', icon: SprayCan, color: 'pink', frequency: 'monthly', completed: false, assignedTo: 'Mom' },
+  { id: 'm3', text: 'Baseboards', icon: Brush, color: 'rose', frequency: 'monthly', completed: false, assignedTo: 'Dad' },
+  { id: 'm4', text: 'Wipe Kitchen', icon: Zap, color: 'pink', frequency: 'monthly', completed: false, assignedTo: 'Mom' },
 ];
 
 export const getChoresForDate = (chores: Chore[], date: Date): Chore[] => {
