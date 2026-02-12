@@ -15,10 +15,10 @@ import {
   Circle,
   ListChecks
 } from 'lucide-react';
-import { format } from 'date-fns';
 import { getWeather, type WeatherData } from './services/weatherService';
 import { DEFAULT_COORDINATES } from './config';
 import DailyFeedWidget from './components/DailyFeedWidget';
+import Clock from './components/Clock';
 
 interface Chore {
   id: string;
@@ -27,7 +27,6 @@ interface Chore {
 }
 
 const App: React.FC = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,11 +39,6 @@ const App: React.FC = () => {
     { id: '4', text: 'Evening Dog Walk', completed: false },
     { id: '5', text: 'Water Plants', completed: false },
   ]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     // NYC coordinates for now
@@ -89,15 +83,7 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen w-screen bg-black text-white p-6 font-sans select-none">
       {/* Top Section: Clock & Date */}
-      <div className="flex flex-col items-center mt-12 mb-12">
-        <h1 className="text-8xl font-thin tracking-tighter">
-          {format(currentTime, 'h:mm')}
-          <span className="text-3xl ml-2 opacity-50">{format(currentTime, 'a')}</span>
-        </h1>
-        <p className="text-2xl font-light text-gray-400 mt-2">
-          {format(currentTime, 'EEEE, MMMM do')}
-        </p>
-      </div>
+      <Clock />
 
       {/* Main Content: Widgets */}
       <div className="flex-1 grid grid-cols-2 gap-6 overflow-y-auto pb-4">
