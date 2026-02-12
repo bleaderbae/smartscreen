@@ -3,15 +3,24 @@ import { render, screen } from '@testing-library/react';
 import CalendarWidget from './CalendarWidget';
 
 describe('CalendarWidget', () => {
+  const mockEvents = [
+    {
+      summary: 'Dinner with Grandparents',
+      startDate: new Date(),
+      endDate: new Date(),
+      source: 'Mom'
+    }
+  ];
+
   it('renders next event information', () => {
-    render(<CalendarWidget />);
+    render(<CalendarWidget events={mockEvents} loading={false} />);
     expect(screen.getByText('Next Event')).toBeInTheDocument();
     expect(screen.getByText('Dinner with Grandparents')).toBeInTheDocument();
-    expect(screen.getByText('6:30 PM - Tonight')).toBeInTheDocument();
+    expect(screen.getByText(/Today/)).toBeInTheDocument();
   });
 
-  it('renders participant avatars', () => {
-    render(<CalendarWidget />);
-    expect(screen.getByText('+2 others')).toBeInTheDocument();
+  it('renders source badge', () => {
+    render(<CalendarWidget events={mockEvents} loading={false} />);
+    expect(screen.getByText('Mom')).toBeInTheDocument();
   });
 });

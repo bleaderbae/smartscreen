@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Settings, 
   User, 
   Home
 } from 'lucide-react';
 import { getWeather, type WeatherData } from './services/weatherService';
-import { DEFAULT_COORDINATES } from './config';
+import { fetchCalendarEvents, type CalendarEvent } from './services/calendarService';
+import { DEFAULT_COORDINATES, FAMILY_PROFILES } from './config';
 import DailyFeedWidget from './components/DailyFeedWidget';
 import ShoppingListWidget from './components/ShoppingListWidget';
 import WeatherWidget from './components/WeatherWidget';
@@ -15,41 +16,71 @@ import Clock from './components/Clock';
 
 const App: React.FC = () => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [calendarLoading, setCalendarLoading] = useState(false);
+
+  const fetchWeatherData = useCallback(async () => {
+    try {
+      setWeatherLoading(true);
+      const data = await getWeather(DEFAULT_COORDINATES.latitude, DEFAULT_COORDINATES.longitude);
+      setWeather(data);
+      setWeatherError(null);
+    } catch (err) {
+      setWeatherError('Failed to load weather');
+      console.error(err);
+    } finally {
+      setWeatherLoading(false);
+    }
+  }, []);
+
+  const fetchCalendarData = useCallback(async () => {
+    const urls = Object.fromEntries(
+      Object.entries(FAMILY_PROFILES)
+        .filter(([_, member]) => member.calendarUrl)
+        .map(([name, member]) => [name, member.calendarUrl])
+    );
+
+    if (Object.keys(urls).length === 0) return;
+    
+    setCalendarLoading(true);
+    try {
+      const data = await fetchCalendarEvents(urls);
+      setCalendarEvents(data);
+    } catch (error) {
+      console.error("Failed to load calendar", error);
+    } finally {
+      setCalendarLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        setLoading(true);
-        const data = await getWeather(DEFAULT_COORDINATES.latitude, DEFAULT_COORDINATES.longitude);
-        setWeather(data);
-      } catch (err) {
-        setError('Failed to load weather');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchWeatherData();
+    fetchCalendarData();
 
-    fetchWeather();
-    // Refresh every 30 minutes
-    const interval = setInterval(fetchWeather, 30 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+    const weatherInterval = setInterval(fetchWeatherData, 30 * 60 * 1000);
+    const calendarInterval = setInterval(fetchCalendarData, 60 * 60 * 1000);
+
+    return () => {
+      clearInterval(weatherInterval);
+      clearInterval(calendarInterval);
+    };
+  }, [fetchWeatherData, fetchCalendarData]);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-black text-white p-6 font-sans select-none overflow-hidden">
       {/* Top Section: Clock & Date */}
-      <Clock />
+      <Clock nextEvent={calendarEvents[0]} />
 
       {/* Main Content: Widgets */}
       <div className="flex-1 grid grid-cols-2 gap-6 overflow-y-auto pb-4 scrollbar-hide">
         {/* Weather Widget */}
-        <WeatherWidget weather={weather} loading={loading} error={error} />
+        <WeatherWidget weather={weather} loading={weatherLoading} error={weatherError} />
 
         {/* Calendar Widget */}
-        <CalendarWidget />
+        <CalendarWidget events={calendarEvents} loading={calendarLoading} />
 
         {/* Family Chores Grid */}
         <ChoreGrid />
