@@ -78,10 +78,34 @@ describe('DailyFeedWidget', () => {
     });
 
     // Close modal
-    fireEvent.click(screen.getAllByRole('button')[0]); // The X button
+    fireEvent.click(screen.getByRole('button', { name: /close/i }));
 
     await waitFor(() => {
         expect(screen.queryByText('Image Credit: NASA APOD')).not.toBeInTheDocument();
     });
+  });
+
+  it('opens modal on Enter key', async () => {
+    render(<DailyFeedWidget />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Space Title')).toBeInTheDocument();
+    });
+
+    const widget = screen.getByRole('button', { name: /View Astronomy Picture: Space Title/i });
+
+    // Focus and press Enter
+    widget.focus();
+    fireEvent.keyDown(widget, { key: 'Enter', code: 'Enter' });
+
+    // Check for modal content
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Space desc')).toBeInTheDocument();
+    });
+
+    // Check close button accessibility
+    const closeButton = screen.getByRole('button', { name: /close/i });
+    expect(closeButton).toBeInTheDocument();
   });
 });
