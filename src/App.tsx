@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getWeather, type WeatherData } from './services/weatherService';
+import { DEFAULT_COORDINATES } from './config';
 import DailyFeedWidget from './components/DailyFeedWidget';
 
 interface Chore {
@@ -50,7 +51,7 @@ const App: React.FC = () => {
     const fetchWeather = async () => {
       try {
         setLoading(true);
-        const data = await getWeather(40.7128, -74.0060);
+        const data = await getWeather(DEFAULT_COORDINATES.latitude, DEFAULT_COORDINATES.longitude);
         setWeather(data);
       } catch (err) {
         setError('Failed to load weather');
