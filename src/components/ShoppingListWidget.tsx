@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, 
   Plus, 
@@ -19,26 +19,37 @@ interface ShoppingItem {
   id: string;
   text: string;
   completed: boolean;
-  icon?: LucideIcon;
+  icon?: string; // Store icon name as string for persistence
   color?: string;
 }
 
-const QUICK_ADD_ITEMS = [
-  { text: 'Milk', icon: Milk, color: 'blue' },
-  { text: 'Eggs', icon: Egg, color: 'yellow' },
-  { text: 'Apples', icon: Apple, color: 'red' },
-  { text: 'Carrots', icon: Carrot, color: 'orange' },
-  { text: 'Coffee', icon: Coffee, color: 'indigo' },
-  { text: 'Steak', icon: Beef, color: 'red' },
-  { text: 'Snacks', icon: Zap, color: 'yellow' },
+const QUICK_ADD_ITEMS: { text: string; icon: LucideIcon; color: string; iconName: string }[] = [
+  { text: 'Milk', icon: Milk, color: 'blue', iconName: 'Milk' },
+  { text: 'Eggs', icon: Egg, color: 'yellow', iconName: 'Egg' },
+  { text: 'Apples', icon: Apple, color: 'red', iconName: 'Apple' },
+  { text: 'Carrots', icon: Carrot, color: 'orange', iconName: 'Carrot' },
+  { text: 'Coffee', icon: Coffee, color: 'indigo', iconName: 'Coffee' },
+  { text: 'Steak', icon: Beef, color: 'red', iconName: 'Beef' },
+  { text: 'Snacks', icon: Zap, color: 'yellow', iconName: 'Zap' },
 ];
 
+const ICON_MAP: Record<string, LucideIcon> = {
+  Milk, Egg, Apple, Carrot, Coffee, Beef, Zap
+};
+
 const ShoppingListWidget: React.FC = () => {
-  const [items, setItems] = useState<ShoppingItem[]>([
-    { id: '1', text: 'Milk', completed: false, icon: Milk, color: 'blue' },
-    { id: '2', text: 'Avocados', completed: false },
-    { id: '3', text: 'Whole Grain Bread', completed: false },
-  ]);
+  const [items, setItems] = useState<ShoppingItem[]>(() => {
+    const saved = localStorage.getItem('shopping-list');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', text: 'Milk', completed: false, icon: 'Milk', color: 'blue' },
+      { id: '2', text: 'Avocados', completed: false },
+      { id: '3', text: 'Whole Grain Bread', completed: false },
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('shopping-list', JSON.stringify(items));
+  }, [items]);
 
   const toggleItem = (id: string) => {
     setItems(prev => prev.map(item => 
@@ -46,7 +57,7 @@ const ShoppingListWidget: React.FC = () => {
     ));
   };
 
-  const addItem = (text: string, icon?: LucideIcon, color?: string) => {
+  const addItem = (text: string, iconName?: string, color?: string) => {
     // Avoid duplicates for quick add
     if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
     
@@ -54,7 +65,7 @@ const ShoppingListWidget: React.FC = () => {
       id: Date.now().toString(),
       text,
       completed: false,
-      icon,
+      icon: iconName,
       color
     }, ...prev]);
   };
@@ -88,7 +99,7 @@ const ShoppingListWidget: React.FC = () => {
           {QUICK_ADD_ITEMS.map((preset) => (
             <button
               key={preset.text}
-              onClick={() => addItem(preset.text, preset.icon, preset.color)}
+              onClick={() => addItem(preset.text, preset.iconName, preset.color)}
               aria-label={`Quick add ${preset.text}`}
               className="flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform"
             >
@@ -105,42 +116,45 @@ const ShoppingListWidget: React.FC = () => {
       <div className="space-y-3">
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 px-1">Items</span>
         <ul className="space-y-2">
-          {items.map((item) => (
-            <li 
-              key={item.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => toggleItem(item.id)}
-              aria-label={`Toggle ${item.text}`}
-              className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all cursor-pointer border border-transparent active:border-white/10 group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  {item.completed ? (
-                    <CheckCircle2 className="text-green-400 shrink-0" size={28} />
-                  ) : (
-                    <Circle className="text-gray-600 shrink-0" size={28} />
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  {item.icon && <item.icon size={20} className={`text-${item.color}-400/60`} />}
-                  <span className={`text-xl font-light transition-all ${
-                    item.completed ? 'line-through text-gray-500 italic' : 'text-gray-100'
-                  }`}>
-                    {item.text}
-                  </span>
-                </div>
-              </div>
-              
-              <button 
-                onClick={(e) => removeItem(e, item.id)}
-                className="p-2 text-gray-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label={`Remove ${item.text}`}
+          {items.map((item) => {
+            const Icon = item.icon ? ICON_MAP[item.icon] : null;
+            return (
+              <li 
+                key={item.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleItem(item.id)}
+                aria-label={`Toggle ${item.text}`}
+                className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all cursor-pointer border border-transparent active:border-white/10 group"
               >
-                <Trash2 size={18} />
-              </button>
-            </li>
-          ))}
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    {item.completed ? (
+                      <CheckCircle2 className="text-green-400 shrink-0" size={28} />
+                    ) : (
+                      <Circle className="text-gray-600 shrink-0" size={28} />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {Icon && <Icon size={20} className={`text-${item.color}-400/60`} />}
+                    <span className={`text-xl font-light transition-all ${
+                      item.completed ? 'line-through text-gray-500 italic' : 'text-gray-100'
+                    }`}>
+                      {item.text}
+                    </span>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={(e) => removeItem(e, item.id)}
+                  className="p-2 text-gray-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label={`Remove ${item.text}`}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </div>
 

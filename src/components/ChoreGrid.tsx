@@ -1,23 +1,59 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ListChecks, CalendarDays, LayoutGrid } from 'lucide-react';
+import { format, startOfWeek, startOfMonth } from 'date-fns';
 import ChoreWidget from './ChoreWidget';
 import { INITIAL_CHORES, getChoresForDate, type Chore } from '../services/choreService';
 
 const ChoreGrid: React.FC = () => {
-  const [chores, setChores] = useState<Chore[]>(INITIAL_CHORES);
+  const today = useMemo(() => new Date(), []);
+  
+  // Persistence logic: track completions with period-specific keys
+  const [completions, setCompletions] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('chore-completions');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const [viewMode, setViewAll] = useState(false); // false = Due Today, true = Show All
 
-  const today = useMemo(() => new Date(), []);
+  useEffect(() => {
+    localStorage.setItem('chore-completions', JSON.stringify(completions));
+  }, [completions]);
+
+  const getCompletionKey = (chore: Chore, date: Date) => {
+    if (chore.frequency === 'daily') {
+      return `daily-${chore.id}-${format(date, 'yyyy-MM-dd')}`;
+    }
+    if (chore.frequency === 'weekly') {
+      // Use the start of the week as the key suffix
+      return `weekly-${chore.id}-${format(startOfWeek(date), 'yyyy-MM-dd')}`;
+    }
+    if (chore.frequency === 'monthly') {
+      return `monthly-${chore.id}-${format(startOfMonth(date), 'yyyy-MM')}`;
+    }
+    return `${chore.id}`;
+  };
+
+  const choresWithCompletion = useMemo(() => {
+    return INITIAL_CHORES.map(chore => ({
+      ...chore,
+      completed: !!completions[getCompletionKey(chore, today)]
+    }));
+  }, [completions, today]);
 
   const displayedChores = useMemo(() => {
-    if (viewMode) return chores;
-    return getChoresForDate(chores, today);
-  }, [chores, today, viewMode]);
+    if (viewMode) return choresWithCompletion;
+    return getChoresForDate(choresWithCompletion, today);
+  }, [choresWithCompletion, today, viewMode]);
 
   const toggleChore = (id: string) => {
-    setChores(prev => prev.map(c => 
-      c.id === id ? { ...c, completed: !c.completed } : c
-    ));
+    const chore = INITIAL_CHORES.find(c => c.id === id);
+    if (!chore) return;
+
+    const key = getCompletionKey(chore, today);
+    setCompletions(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
   };
 
   const sections = [
