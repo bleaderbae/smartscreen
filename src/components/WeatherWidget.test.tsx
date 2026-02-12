@@ -16,19 +16,27 @@ describe('WeatherWidget', () => {
 
   it('renders loading state', () => {
     render(<WeatherWidget weather={null} loading={true} error={null} />);
-    expect(screen.getByText('Updating...')).toBeInTheDocument();
+    expect(screen.getByText('Checking Clouds...')).toBeInTheDocument();
   });
 
   it('renders error state', () => {
     render(<WeatherWidget weather={null} loading={false} error="Failed" />);
-    expect(screen.getByText('Weather Unavailable')).toBeInTheDocument();
-    expect(screen.getByText('Try Again')).toBeInTheDocument();
+    expect(screen.getByText('Weather is Sleepy')).toBeInTheDocument();
+    expect(screen.getByText('Wake Up')).toBeInTheDocument();
   });
 
-  it('renders weather data', () => {
+  it('renders weather data and outfit suggestions', () => {
     render(<WeatherWidget weather={mockWeather} loading={false} error={null} />);
     expect(screen.getByText('72°')).toBeInTheDocument();
     expect(screen.getByText('Sunny')).toBeInTheDocument();
-    expect(screen.getByText('High: 75° Low: 65°')).toBeInTheDocument();
+    expect(screen.getByText('Warm Day ☀️')).toBeInTheDocument();
+    expect(screen.getByText('T-shirt weather!')).toBeInTheDocument();
+  });
+
+  it('renders cold weather advice', () => {
+    const coldWeather: WeatherData = { ...mockWeather, temperature: 45 };
+    render(<WeatherWidget weather={coldWeather} loading={false} error={null} />);
+    expect(screen.getByText('Cold Day 🧥')).toBeInTheDocument();
+    expect(screen.getByText('Wear a warm coat')).toBeInTheDocument();
   });
 });
