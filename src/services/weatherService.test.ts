@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { getWeather } from './weatherService';
 
 describe('getWeather', () => {
@@ -7,6 +7,7 @@ describe('getWeather', () => {
     if (typeof vi.stubGlobal === 'function') {
       vi.stubGlobal('fetch', vi.fn());
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       globalThis.fetch = vi.fn() as any;
     }
   });
@@ -60,7 +61,7 @@ describe('getWeather', () => {
     };
 
     // Mock the fetch implementation
-    (fetch as any).mockImplementation((url: string) => {
+    (fetch as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
         return Promise.resolve(mockPointsResponse);
       }
@@ -86,7 +87,7 @@ describe('getWeather', () => {
   });
 
   it('handles points fetch failure', async () => {
-    (fetch as any).mockImplementation(() => Promise.resolve({ ok: false, statusText: 'Not Found' }));
+    (fetch as Mock).mockImplementation(() => Promise.resolve({ ok: false, statusText: 'Not Found' }));
 
     await expect(getWeather(0, 0)).rejects.toThrow('Failed to fetch points: Not Found');
   });
@@ -101,7 +102,7 @@ describe('getWeather', () => {
       }),
     };
 
-    (fetch as any).mockImplementation((url: string) => {
+    (fetch as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
         return Promise.resolve(mockPointsResponse);
       }
@@ -133,7 +134,7 @@ describe('getWeather', () => {
       }),
     };
 
-    (fetch as any).mockImplementation((url: string) => {
+    (fetch as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
         return Promise.resolve(mockPointsResponse);
       }
@@ -144,5 +145,60 @@ describe('getWeather', () => {
     });
 
     await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('No forecast data available');
+  });
+
+  it('caches grid point URL for subsequent calls', async () => {
+    const mockPointsResponse = {
+      ok: true,
+      json: async () => ({
+        properties: {
+          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        },
+      }),
+    };
+
+    const mockForecastResponse = {
+      ok: true,
+      json: async () => ({
+        properties: {
+          periods: [
+            {
+              number: 1,
+              name: 'Today',
+              startTime: '2023-10-26T06:00:00-04:00',
+              endTime: '2023-10-26T18:00:00-04:00',
+              isDaytime: true,
+              temperature: 72,
+              temperatureUnit: 'F',
+              shortForecast: 'Partly Cloudy',
+              detailedForecast: 'Partly cloudy, with a high near 72.',
+              icon: 'https://api.weather.gov/icons/land/day/sct?size=medium',
+            },
+          ],
+        },
+      }),
+    };
+
+    (fetch as Mock).mockImplementation((url: string) => {
+      if (url.includes('/points/')) {
+        return Promise.resolve(mockPointsResponse);
+      }
+      if (url.includes('/forecast')) {
+        return Promise.resolve(mockForecastResponse);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    // First call: should fetch points + forecast
+    // Use unique coordinates to ensure cache miss (since other tests might populate cache for default coords)
+    const lat = 41.0000;
+    const long = -75.0000;
+
+    await getWeather(lat, long);
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    // Second call: should fetch only forecast (using cached grid point URL)
+    await getWeather(lat, long);
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 });
