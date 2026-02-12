@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Cloud, 
-  Sun,
-  CloudRain,
-  CloudSnow,
-  CloudLightning,
-  CloudFog,
-  Calendar as CalendarIcon, 
-  ShoppingCart, 
   Settings, 
   User, 
   Home,
@@ -18,6 +10,9 @@ import {
 import { getWeather, type WeatherData } from './services/weatherService';
 import { DEFAULT_COORDINATES } from './config';
 import DailyFeedWidget from './components/DailyFeedWidget';
+import ShoppingListWidget from './components/ShoppingListWidget';
+import WeatherWidget from './components/WeatherWidget';
+import CalendarWidget from './components/CalendarWidget';
 import Clock from './components/Clock';
 
 interface Chore {
@@ -41,7 +36,6 @@ const App: React.FC = () => {
   ]);
 
   useEffect(() => {
-    // NYC coordinates for now
     const fetchWeather = async () => {
       try {
         setLoading(true);
@@ -61,19 +55,6 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const getWeatherIconComponent = (type: WeatherData['weatherIcon']) => {
-    switch (type) {
-      case 'Clear': return <Sun className="text-yellow-400" size={40} />;
-      case 'Cloudy': return <Cloud className="text-gray-400" size={40} />;
-      case 'PartlyCloudy': return <Cloud className="text-blue-400" size={40} />;
-      case 'Rain': return <CloudRain className="text-blue-500" size={40} />;
-      case 'Snow': return <CloudSnow className="text-white" size={40} />;
-      case 'Thunderstorm': return <CloudLightning className="text-yellow-600" size={40} />;
-      case 'Fog': return <CloudFog className="text-gray-400" size={40} />;
-      default: return <Cloud className="text-blue-400" size={40} />;
-    }
-  };
-
   const toggleChore = (id: string) => {
     setChores(chores.map(chore =>
       chore.id === id ? { ...chore, completed: !chore.completed } : chore
@@ -81,64 +62,37 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-black text-white p-6 font-sans select-none">
+    <div className="flex flex-col h-screen w-screen bg-black text-white p-6 font-sans select-none overflow-hidden">
       {/* Top Section: Clock & Date */}
       <Clock />
 
       {/* Main Content: Widgets */}
-      <div className="flex-1 grid grid-cols-2 gap-6 overflow-y-auto pb-4">
+      <div className="flex-1 grid grid-cols-2 gap-6 overflow-y-auto pb-4 scrollbar-hide">
         {/* Weather Widget */}
-        <div className="bg-gray-900/50 rounded-3xl p-6 flex flex-col justify-between border border-gray-800 min-h-[200px]">
-          {loading ? (
-             <div className="flex flex-col h-full items-center justify-center">
-               <span className="animate-pulse text-gray-400">Loading Weather...</span>
-             </div>
-          ) : error ? (
-             <div className="flex flex-col h-full items-center justify-center">
-               <span className="text-red-400">Weather Unavailable</span>
-             </div>
-          ) : weather ? (
-            <>
-              <div className="flex justify-between items-start">
-                {getWeatherIconComponent(weather.weatherIcon)}
-                <span className="text-4xl font-light">{weather.temperature}°</span>
-              </div>
-              <div className="mt-4">
-                <p className="text-xl font-medium truncate">{weather.shortForecast}</p>
-                <p className="text-sm text-gray-400">
-                  {weather.high !== undefined ? `High: ${weather.high}° ` : ''}
-                  {weather.low !== undefined ? `Low: ${weather.low}°` : ''}
-                </p>
-              </div>
-            </>
-          ) : null}
-        </div>
+        <WeatherWidget weather={weather} loading={loading} error={error} />
 
         {/* Calendar Widget */}
-        <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 min-h-[200px]">
-          <div className="flex items-center gap-2 mb-4">
-            <CalendarIcon className="text-red-400" size={24} />
-            <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Next Event</span>
-          </div>
-          <p className="text-lg font-medium leading-tight">Dinner with Grandparents</p>
-          <p className="text-sm text-gray-500 mt-1">6:30 PM - Tonight</p>
-        </div>
+        <CalendarWidget />
 
         {/* To Do Checklist */}
         <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-4 px-2">
             <ListChecks className="text-purple-400" size={24} />
             <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Weekly Chores</span>
           </div>
-          <ul className="space-y-3">
+          <ul className="space-y-2">
             {chores.map((chore) => (
-              <li key={chore.id} className="flex items-center gap-3 cursor-pointer group" onClick={() => toggleChore(chore.id)}>
+              <li 
+                key={chore.id} 
+                className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all cursor-pointer border border-transparent active:border-white/10" 
+                onClick={() => toggleChore(chore.id)}
+              >
                 {chore.completed ? (
-                  <CheckCircle className="text-green-400 transition-colors" size={24} />
+                  <CheckCircle className="text-green-400" size={28} />
                 ) : (
-                  <Circle className="text-gray-600 group-hover:text-gray-400 transition-colors" size={24} />
+                  <Circle className="text-gray-600" size={28} />
                 )}
-                <span className={`text-lg font-light transition-all ${chore.completed ? 'line-through text-gray-500' : 'text-gray-100'}`}>
+                <span className={`text-xl font-light transition-all ${chore.completed ? 'line-through text-gray-500 italic' : 'text-gray-100'}`}>
                   {chore.text}
                 </span>
               </li>
@@ -147,23 +101,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Shopping List */}
-        <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="text-green-400" size={24} />
-              <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Shopping List</span>
-            </div>
-            <button className="text-xs text-blue-400 font-medium">View All</button>
-          </div>
-          <ul className="space-y-3">
-            {['Oat Milk', 'Avocados', 'Whole Grain Bread'].map((item, i) => (
-              <li key={i} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full border border-gray-700" />
-                <span className="text-lg font-light">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ShoppingListWidget />
 
         {/* Daily Feed Widget */}
         <DailyFeedWidget />
@@ -171,9 +109,9 @@ const App: React.FC = () => {
 
       {/* Bottom Navigation / Apps */}
       <div className="mt-8 mb-4 bg-gray-900/80 backdrop-blur-md rounded-full p-4 flex justify-around items-center border border-gray-800">
-        <Home className="text-blue-400" size={28} />
-        <User className="text-gray-500" size={28} />
-        <Settings className="text-gray-500" size={28} />
+        <Home className="text-blue-400 active:scale-90 transition-transform cursor-pointer" size={28} />
+        <User className="text-gray-500 active:scale-90 transition-transform cursor-pointer" size={28} />
+        <Settings className="text-gray-500 active:scale-90 transition-transform cursor-pointer" size={28} />
       </div>
     </div>
   );
