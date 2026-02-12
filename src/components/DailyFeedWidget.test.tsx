@@ -45,12 +45,15 @@ describe('DailyFeedWidget', () => {
   });
 
   it('toggles to Dog content after timer', async () => {
-    vi.useFakeTimers({ toFake: ['setInterval'] });
+    vi.useFakeTimers();
     render(<DailyFeedWidget />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Astronomy Picture')).toBeInTheDocument();
+    // Allow initial load to complete (flushing microtasks for mocked service calls)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
     });
+
+    expect(screen.getByText('Astronomy Picture')).toBeInTheDocument();
 
     // Fast forward 10 minutes
     act(() => {
