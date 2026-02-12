@@ -8,7 +8,6 @@ import {
   CloudFog,
   Calendar as CalendarIcon, 
   ShoppingCart, 
-  StickyNote, 
   Settings, 
   User, 
   Home,
@@ -18,6 +17,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getWeather, type WeatherData } from './services/weatherService';
+import DailyFeedWidget from './components/DailyFeedWidget';
 
 interface Chore {
   id: string;
@@ -178,16 +178,8 @@ const App: React.FC = () => {
           </ul>
         </div>
 
-        {/* Notes Widget */}
-        <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2">
-          <div className="flex items-center gap-2 mb-4">
-            <StickyNote className="text-yellow-400" size={24} />
-            <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Family Note</span>
-          </div>
-          <p className="text-lg font-light italic text-gray-300">
-            "Remember to water the plants before you leave! Love, Mom"
-          </p>
-        </div>
+        {/* Daily Feed Widget */}
+        <DailyFeedWidget />
       </div>
 
       {/* Bottom Navigation / Apps */}
