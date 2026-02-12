@@ -1,8 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import ShoppingListWidget from './ShoppingListWidget';
 
 describe('ShoppingListWidget', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('renders default shopping items', () => {
     render(<ShoppingListWidget />);
     // Check for items in the list (using specific toggle label)

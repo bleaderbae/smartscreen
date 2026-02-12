@@ -1,39 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Loader, User, X } from 'lucide-react';
-import { fetchCalendarEvents, type CalendarEvent } from '../services/calendarService';
+import type { CalendarEvent } from '../services/calendarService';
 import { FAMILY_PROFILES } from '../config';
 import { format, isToday, isTomorrow, startOfDay } from 'date-fns';
 
-const CalendarWidget: React.FC = () => {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(false);
+interface CalendarWidgetProps {
+  events: CalendarEvent[];
+  loading: boolean;
+}
+
+const CalendarWidget: React.FC<CalendarWidgetProps> = ({ events, loading }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  useEffect(() => {
-    const loadEvents = async () => {
-      const urls = Object.fromEntries(
-        Object.entries(FAMILY_PROFILES)
-          .filter(([_, member]) => member.calendarUrl)
-          .map(([name, member]) => [name, member.calendarUrl])
-      );
-
-      if (Object.keys(urls).length === 0) return;
-      
-      setLoading(true);
-      try {
-        const data = await fetchCalendarEvents(urls);
-        setEvents(data);
-      } catch (error) {
-        console.error("Failed to load calendar", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEvents();
-    const interval = setInterval(loadEvents, 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const nextEvent = events[0];
 

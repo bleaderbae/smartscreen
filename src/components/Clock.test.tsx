@@ -3,6 +3,13 @@ import { render, screen, act } from '@testing-library/react';
 import Clock from './Clock';
 
 describe('Clock', () => {
+  const mockEvent = {
+    summary: 'Family Dinner',
+    startDate: new Date(),
+    endDate: new Date(),
+    source: 'Mom'
+  };
+
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -37,6 +44,13 @@ describe('Clock', () => {
     vi.setSystemTime(nightDate);
     render(<Clock />);
     expect(screen.getByText('Quiet Time')).toBeInTheDocument();
+  });
+
+  it('renders next event glance', () => {
+    render(<Clock nextEvent={mockEvent} />);
+    expect(screen.getByText('Next Up:')).toBeInTheDocument();
+    expect(screen.getByText('Family Dinner')).toBeInTheDocument();
+    expect(screen.getByText('Mom')).toBeInTheDocument();
   });
 
   it('updates time every minute', async () => {
