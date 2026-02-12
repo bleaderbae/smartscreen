@@ -61,12 +61,17 @@ function getWeatherIconFromUrl(iconUrl: string): WeatherData['weatherIcon'] {
   return 'Unknown';
 }
 
+// Cache for grid points to avoid redundant API calls
+const pointsCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 100;
+
 export async function getWeather(lat: number, long: number): Promise<WeatherData> {
   const userAgent = '(myweatherapp.com, contact@myweatherapp.com)';
   const cacheKey = `${lat},${long}`;
 
   try {
-    let forecastUrl = forecastUrlCache.get(cacheKey);
+    const cacheKey = `${lat},${long}`;
+    let forecastUrl = pointsCache.get(cacheKey);
 
     if (!forecastUrl) {
       // 1. Get grid point
@@ -80,7 +85,11 @@ export async function getWeather(lat: number, long: number): Promise<WeatherData
 
       const pointsData = (await pointsResponse.json()) as GridPointResponse;
       forecastUrl = pointsData.properties.forecast;
-      forecastUrlCache.set(cacheKey, forecastUrl);
+
+      if (pointsCache.size >= MAX_CACHE_SIZE) {
+        pointsCache.clear();
+      }
+      pointsCache.set(cacheKey, forecastUrl);
     }
 
     // 2. Get forecast
@@ -89,7 +98,9 @@ export async function getWeather(lat: number, long: number): Promise<WeatherData
     });
 
     if (!forecastResponse.ok) {
-      forecastUrlCache.delete(cacheKey);
+      if (forecastResponse.status === 404) {
+        pointsCache.delete(cacheKey);
+      }
       throw new Error(`Failed to fetch forecast: ${forecastResponse.statusText}`);
     }
 
