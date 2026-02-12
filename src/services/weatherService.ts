@@ -48,6 +48,8 @@ interface ForecastResponse {
   };
 }
 
+const forecastUrlCache = new Map<string, string>();
+
 function getWeatherIconFromUrl(iconUrl: string): WeatherData['weatherIcon'] {
   if (iconUrl.includes('skc') || iconUrl.includes('few')) return 'Clear';
   if (iconUrl.includes('sct') || iconUrl.includes('bkn')) return 'PartlyCloudy'; // sct=scattered, bkn=broken
@@ -61,19 +63,25 @@ function getWeatherIconFromUrl(iconUrl: string): WeatherData['weatherIcon'] {
 
 export async function getWeather(lat: number, long: number): Promise<WeatherData> {
   const userAgent = '(myweatherapp.com, contact@myweatherapp.com)';
+  const cacheKey = `${lat},${long}`;
 
   try {
-    // 1. Get grid point
-    const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${long}`, {
-      headers: { 'User-Agent': userAgent }
-    });
+    let forecastUrl = forecastUrlCache.get(cacheKey);
 
-    if (!pointsResponse.ok) {
-      throw new Error(`Failed to fetch points: ${pointsResponse.statusText}`);
+    if (!forecastUrl) {
+      // 1. Get grid point
+      const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${long}`, {
+        headers: { 'User-Agent': userAgent }
+      });
+
+      if (!pointsResponse.ok) {
+        throw new Error(`Failed to fetch points: ${pointsResponse.statusText}`);
+      }
+
+      const pointsData = (await pointsResponse.json()) as GridPointResponse;
+      forecastUrl = pointsData.properties.forecast;
+      forecastUrlCache.set(cacheKey, forecastUrl);
     }
-
-    const pointsData = (await pointsResponse.json()) as GridPointResponse;
-    const forecastUrl = pointsData.properties.forecast;
 
     // 2. Get forecast
     const forecastResponse = await fetch(forecastUrl, {
@@ -81,6 +89,7 @@ export async function getWeather(lat: number, long: number): Promise<WeatherData
     });
 
     if (!forecastResponse.ok) {
+      forecastUrlCache.delete(cacheKey);
       throw new Error(`Failed to fetch forecast: ${forecastResponse.statusText}`);
     }
 
