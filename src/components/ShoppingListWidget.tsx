@@ -75,6 +75,13 @@ const ShoppingListWidget: React.FC = () => {
     setItems(prev => prev.filter(item => item.id !== id));
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleItem(id);
+    }
+  };
+
   return (
     <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2 flex flex-col gap-6">
       <div className="flex justify-between items-center">
@@ -121,13 +128,16 @@ const ShoppingListWidget: React.FC = () => {
             return (
               <li 
                 key={item.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => toggleItem(item.id)}
-                aria-label={`Toggle ${item.text}`}
-                className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all cursor-pointer border border-transparent active:border-white/10 group"
+                className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all border border-transparent active:border-white/10 group"
               >
-                <div className="flex items-center gap-4">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => toggleItem(item.id)}
+                  onKeyDown={(e) => handleKeyDown(e, item.id)}
+                  aria-label={`Toggle ${item.text}`}
+                  className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
+                >
                   <div className="relative">
                     {item.completed ? (
                       <CheckCircle2 className="text-green-400 shrink-0" size={28} />
@@ -147,7 +157,7 @@ const ShoppingListWidget: React.FC = () => {
                 
                 <button 
                   onClick={(e) => removeItem(e, item.id)}
-                  className="p-2 text-gray-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="p-2 text-gray-600 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
                   aria-label={`Remove ${item.text}`}
                 >
                   <Trash2 size={18} />
