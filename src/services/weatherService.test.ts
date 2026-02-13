@@ -211,4 +211,84 @@ describe('getWeather', () => {
     expect(consoleSpy).toHaveBeenCalledWith('Error fetching weather data');
     expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Sensitive internal path'));
   });
+
+  describe('icon mapping', () => {
+    const testCases = [
+      { url: 'https://api.weather.gov/icons/land/day/skc?size=medium', expected: 'Clear' },
+      { url: 'https://api.weather.gov/icons/land/day/few?size=medium', expected: 'Clear' },
+      { url: 'https://api.weather.gov/icons/land/day/sct?size=medium', expected: 'PartlyCloudy' },
+      { url: 'https://api.weather.gov/icons/land/day/bkn?size=medium', expected: 'PartlyCloudy' },
+      { url: 'https://api.weather.gov/icons/land/day/ovc?size=medium', expected: 'Cloudy' },
+      { url: 'https://api.weather.gov/icons/land/day/rain?size=medium', expected: 'Rain' },
+      { url: 'https://api.weather.gov/icons/land/day/shra?size=medium', expected: 'Rain' },
+      { url: 'https://api.weather.gov/icons/land/day/snow?size=medium', expected: 'Snow' },
+      { url: 'https://api.weather.gov/icons/land/day/tsra?size=medium', expected: 'Thunderstorm' },
+      { url: 'https://api.weather.gov/icons/land/day/fog?size=medium', expected: 'Fog' },
+      { url: 'https://api.weather.gov/icons/land/day/hurricane?size=medium', expected: 'Unknown' },
+    ];
+
+    testCases.forEach(({ url, expected }) => {
+      it(`maps icon URL containing "${url}" to ${expected}`, async () => {
+        const mockPointsResponse = {
+          ok: true,
+          json: async () => ({
+            properties: {
+              forecast: 'https://api.weather.gov/gridpoints/TEST/icon,mapping/forecast',
+            },
+          }),
+        };
+
+        const mockForecastResponse = {
+          ok: true,
+          json: async () => ({
+            properties: {
+              periods: [
+                {
+                  number: 1,
+                  name: 'Today',
+                  startTime: '2023-10-26T06:00:00-04:00',
+                  endTime: '2023-10-26T18:00:00-04:00',
+                  isDaytime: true,
+                  temperature: 70,
+                  temperatureUnit: 'F',
+                  shortForecast: 'Weather',
+                  detailedForecast: 'Weather details.',
+                  icon: url,
+                },
+                {
+                  number: 2,
+                  name: 'Tonight',
+                  startTime: '2023-10-26T18:00:00-04:00',
+                  endTime: '2023-10-27T06:00:00-04:00',
+                  isDaytime: false,
+                  temperature: 60,
+                  temperatureUnit: 'F',
+                  shortForecast: 'Clear',
+                  detailedForecast: 'Clear.',
+                  icon: 'http://example.com/clear',
+                },
+              ],
+            },
+          }),
+        };
+
+        (fetch as Mock).mockImplementation((fetchUrl: string) => {
+          if (fetchUrl.includes('/points/')) {
+            return Promise.resolve(mockPointsResponse);
+          }
+          if (fetchUrl.includes('/forecast')) {
+            return Promise.resolve(mockForecastResponse);
+          }
+          return Promise.reject(new Error('Unknown URL'));
+        });
+
+        // Use random coordinates to avoid cache hits
+        const lat = Math.random() * 90;
+        const long = Math.random() * 180;
+
+        const data = await getWeather(lat, long);
+        expect(data.weatherIcon).toBe(expected);
+      });
+    });
+  });
 });
