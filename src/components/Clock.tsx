@@ -12,7 +12,15 @@ const Clock: React.FC<ClockProps> = ({ nextEvent }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(prev => {
+        if (now.getMinutes() !== prev.getMinutes()) {
+          return now;
+        }
+        return prev;
+      });
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
