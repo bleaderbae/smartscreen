@@ -98,6 +98,11 @@ export async function getWeather(lat: number, long: number): Promise<WeatherData
     }
 
     // 2. Get forecast
+    const url = new URL(forecastUrl);
+    if (url.protocol !== 'https:' || (url.hostname !== 'weather.gov' && !url.hostname.endsWith('.weather.gov'))) {
+      throw new Error('Invalid forecast URL');
+    }
+
     const forecastResponse = await fetch(forecastUrl, {
       headers: { 'User-Agent': userAgent }
     });
