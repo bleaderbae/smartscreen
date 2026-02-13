@@ -11,11 +11,9 @@ export interface CalendarEvent {
 }
 
 export const fetchCalendarEvents = async (urls: Record<string, string>): Promise<CalendarEvent[]> => {
-  const allEvents: CalendarEvent[] = [];
-  
   // NWS and other public APIs are fine, but external calendars often have CORS issues.
   // We'll try to fetch, but warn that a proxy might be needed.
-  for (const [name, url] of Object.entries(urls)) {
+  const fetchPromises = Object.entries(urls).map(async ([name, url]) => {
     try {
       // In a production environment, we'd use a proxy to avoid CORS.
       // For a local dev hub, we'll try direct or expect a local proxy.
@@ -24,7 +22,7 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
       const comp = new ICAL.Component(jcalData);
       const vevents = comp.getAllSubcomponents('vevent');
 
-      const events = vevents.map(vevent => {
+      return vevents.map(vevent => {
         const event = new ICAL.Event(vevent);
         return {
           summary: event.summary,
@@ -34,12 +32,14 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
           source: name
         };
       });
-
-      allEvents.push(...events);
     } catch (error) {
       console.error(`Failed to fetch calendar: ${name}`, error);
+      return [];
     }
-  }
+  });
+
+  const results = await Promise.all(fetchPromises);
+  const allEvents = results.flat();
 
   // Sort by date and filter for future events (up to 7 days out)
   const now = new Date();
