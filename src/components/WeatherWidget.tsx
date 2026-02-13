@@ -1,6 +1,7 @@
 import React from 'react';
-import { Cloud, Sun, CloudRain, CloudSnow, CloudLightning, CloudFog, Loader, Thermometer } from 'lucide-react';
+import { Loader, Thermometer } from 'lucide-react';
 import type { WeatherData } from '../services/weatherService';
+import WeatherIcon from './WeatherIcon';
 
 interface WeatherWidgetProps {
   weather: WeatherData | null;
@@ -8,28 +9,15 @@ interface WeatherWidgetProps {
   error: string | null;
 }
 
+const getTemperatureTheme = (temp: number) => {
+  if (temp < 32) return { bg: 'bg-blue-900/40', border: 'border-blue-500/50', text: 'text-blue-400', label: 'Freezing! ❄️', outfit: 'Bundle up tight!' };
+  if (temp < 50) return { bg: 'bg-cyan-900/40', border: 'border-cyan-500/50', text: 'text-cyan-400', label: 'Cold Day 🧥', outfit: 'Wear a warm coat' };
+  if (temp < 70) return { bg: 'bg-green-900/40', border: 'border-green-500/50', text: 'text-green-400', label: 'Perfect! 😊', outfit: 'A light sweater is good' };
+  if (temp < 85) return { bg: 'bg-orange-900/40', border: 'border-orange-500/50', text: 'text-orange-400', label: 'Warm Day ☀️', outfit: 'T-shirt weather!' };
+  return { bg: 'bg-red-900/40', border: 'border-red-500/50', text: 'text-red-400', label: 'Hot! 🥵', outfit: 'Stay cool in shorts' };
+};
+
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, loading, error }) => {
-  const getWeatherIconComponent = (type: WeatherData['weatherIcon'], size = 48) => {
-    switch (type) {
-      case 'Clear': return <Sun className="text-yellow-400" size={size} />;
-      case 'Cloudy': return <Cloud className="text-gray-400" size={size} />;
-      case 'PartlyCloudy': return <Cloud className="text-blue-400" size={size} />;
-      case 'Rain': return <CloudRain className="text-blue-500" size={size} />;
-      case 'Snow': return <CloudSnow className="text-white" size={size} />;
-      case 'Thunderstorm': return <CloudLightning className="text-yellow-600" size={size} />;
-      case 'Fog': return <CloudFog className="text-gray-400" size={size} />;
-      default: return <Cloud className="text-blue-400" size={size} />;
-    }
-  };
-
-  const getTemperatureTheme = (temp: number) => {
-    if (temp < 32) return { bg: 'bg-blue-900/40', border: 'border-blue-500/50', text: 'text-blue-400', label: 'Freezing! ❄️', outfit: 'Bundle up tight!' };
-    if (temp < 50) return { bg: 'bg-cyan-900/40', border: 'border-cyan-500/50', text: 'text-cyan-400', label: 'Cold Day 🧥', outfit: 'Wear a warm coat' };
-    if (temp < 70) return { bg: 'bg-green-900/40', border: 'border-green-500/50', text: 'text-green-400', label: 'Perfect! 😊', outfit: 'A light sweater is good' };
-    if (temp < 85) return { bg: 'bg-orange-900/40', border: 'border-orange-500/50', text: 'text-orange-400', label: 'Warm Day ☀️', outfit: 'T-shirt weather!' };
-    return { bg: 'bg-red-900/40', border: 'border-red-500/50', text: 'text-red-400', label: 'Hot! 🥵', outfit: 'Stay cool in shorts' };
-  };
-
   const theme = weather ? getTemperatureTheme(weather.temperature) : null;
 
   return (
@@ -61,7 +49,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, loading, error }
           <div className="flex justify-between items-start">
             <div className="flex flex-col gap-1">
               <div className="p-3 bg-black/20 rounded-2xl w-fit">
-                {getWeatherIconComponent(weather.weatherIcon, 64)}
+                <WeatherIcon type={weather.weatherIcon} size={64} />
               </div>
               <span className={`text-xs font-black uppercase tracking-[0.2em] mt-2 ${theme.text}`}>
                 {theme.label}
