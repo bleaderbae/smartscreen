@@ -48,7 +48,7 @@ interface ForecastResponse {
   };
 }
 
-function getWeatherIconFromUrl(iconUrl: string): WeatherData['weatherIcon'] {
+export function getWeatherIconFromUrl(iconUrl: string): WeatherData['weatherIcon'] {
   if (iconUrl.includes('skc') || iconUrl.includes('few')) return 'Clear';
   if (iconUrl.includes('sct') || iconUrl.includes('bkn')) return 'PartlyCloudy'; // sct=scattered, bkn=broken
   if (iconUrl.includes('ovc')) return 'Cloudy';
