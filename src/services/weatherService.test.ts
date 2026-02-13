@@ -40,13 +40,13 @@ describe('getWeather', () => {
   });
 
   it('rejects with error for invalid latitude', async () => {
-    await expect(getWeather(91, 0)).rejects.toThrow('Invalid latitude: must be between -90 and 90');
-    await expect(getWeather(-91, 0)).rejects.toThrow('Invalid latitude: must be between -90 and 90');
+    await expect(getWeather(91, 0)).rejects.toThrow('Invalid latitude: must be a number between -90 and 90');
+    await expect(getWeather(-91, 0)).rejects.toThrow('Invalid latitude: must be a number between -90 and 90');
   });
 
   it('rejects with error for invalid longitude', async () => {
-    await expect(getWeather(0, 181)).rejects.toThrow('Invalid longitude: must be between -180 and 180');
-    await expect(getWeather(0, -181)).rejects.toThrow('Invalid longitude: must be between -180 and 180');
+    await expect(getWeather(0, 181)).rejects.toThrow('Invalid longitude: must be a number between -180 and 180');
+    await expect(getWeather(0, -181)).rejects.toThrow('Invalid longitude: must be a number between -180 and 180');
   });
 
   it('fetches weather data successfully', async () => {
