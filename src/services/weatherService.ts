@@ -135,7 +135,7 @@ export async function getWeather(lat: number, long: number): Promise<WeatherData
     };
 
   } catch (error) {
-    console.error('Error fetching weather:', error);
+    console.error('Error fetching weather data');
     throw error;
   }
 }
