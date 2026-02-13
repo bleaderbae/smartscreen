@@ -109,6 +109,66 @@ describe('getWeather', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it('correctly sets high and low temperatures for nighttime forecast', async () => {
+    const mockPointsResponse = {
+      ok: true,
+      json: async () => ({
+        properties: {
+          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        },
+      }),
+    };
+
+    const mockForecastResponse = {
+      ok: true,
+      json: async () => ({
+        properties: {
+          periods: [
+            {
+              number: 1,
+              name: 'Tonight',
+              startTime: '2023-10-26T18:00:00-04:00',
+              endTime: '2023-10-27T06:00:00-04:00',
+              isDaytime: false,
+              temperature: 55,
+              temperatureUnit: 'F',
+              shortForecast: 'Clear',
+              detailedForecast: 'Clear, with a low around 55.',
+              icon: 'https://api.weather.gov/icons/land/night/few?size=medium',
+            },
+            {
+              number: 2,
+              name: 'Tomorrow',
+              startTime: '2023-10-27T06:00:00-04:00',
+              endTime: '2023-10-27T18:00:00-04:00',
+              isDaytime: true,
+              temperature: 75,
+              temperatureUnit: 'F',
+              shortForecast: 'Sunny',
+              detailedForecast: 'Sunny, with a high near 75.',
+              icon: 'https://api.weather.gov/icons/land/day/few?size=medium',
+            },
+          ],
+        },
+      }),
+    };
+
+    (fetch as Mock).mockImplementation((url: string) => {
+      if (url.includes('/points/')) {
+        return Promise.resolve(mockPointsResponse);
+      }
+      if (url.includes('/forecast')) {
+        return Promise.resolve(mockForecastResponse);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    const data = await getWeather(40.7128, -74.0060);
+
+    expect(data.high).toBe(75);
+    expect(data.low).toBe(55);
+  });
+
   it('handles points fetch failure', async () => {
     (fetch as Mock).mockImplementation(() => Promise.resolve({ ok: false, statusText: 'Not Found' }));
 
