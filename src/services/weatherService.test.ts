@@ -201,4 +201,14 @@ describe('getWeather', () => {
     await getWeather(lat, long);
     expect(fetch).toHaveBeenCalledTimes(3);
   });
+
+  it('logs a generic error message and does not expose internal error details', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    (fetch as Mock).mockImplementation(() => Promise.reject(new Error('Sensitive internal path: /var/www/html')));
+
+    await expect(getWeather(0, 0)).rejects.toThrow();
+
+    expect(consoleSpy).toHaveBeenCalledWith('Error fetching weather data');
+    expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Sensitive internal path'));
+  });
 });
