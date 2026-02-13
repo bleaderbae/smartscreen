@@ -64,6 +64,14 @@ const pointsCache = new Map<string, string>();
 const MAX_CACHE_SIZE = 100;
 
 export async function getWeather(lat: number, long: number): Promise<WeatherData> {
+  // Input validation: ensure coordinates are within valid ranges
+  if (lat < -90 || lat > 90) {
+    throw new Error('Invalid latitude: must be between -90 and 90');
+  }
+  if (long < -180 || long > 180) {
+    throw new Error('Invalid longitude: must be between -180 and 180');
+  }
+
   const userAgent = '(myweatherapp.com, contact@myweatherapp.com)';
 
   try {
