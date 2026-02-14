@@ -39,7 +39,7 @@ const App: React.FC = () => {
   const fetchCalendarData = useCallback(async () => {
     const urls = Object.fromEntries(
       Object.entries(FAMILY_PROFILES)
-        .filter(([_, member]) => member.calendarUrl)
+        .filter(([, member]) => member.calendarUrl)
         .map(([name, member]) => [name, member.calendarUrl])
     );
 
