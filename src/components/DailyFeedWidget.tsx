@@ -167,4 +167,4 @@ const DailyFeedWidget: React.FC = () => {
   );
 };
 
-export default DailyFeedWidget;
+export default React.memo(DailyFeedWidget);

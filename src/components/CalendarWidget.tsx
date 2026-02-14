@@ -184,4 +184,4 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ events, loading }) => {
 import { parseISO as dateFnsParseISO } from 'date-fns';
 const parseISO = (s: string) => dateFnsParseISO(s);
 
-export default CalendarWidget;
+export default React.memo(CalendarWidget);

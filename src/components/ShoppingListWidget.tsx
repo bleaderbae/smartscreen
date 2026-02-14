@@ -175,4 +175,4 @@ const ShoppingListWidget: React.FC = () => {
   );
 };
 
-export default ShoppingListWidget;
+export default React.memo(ShoppingListWidget);
