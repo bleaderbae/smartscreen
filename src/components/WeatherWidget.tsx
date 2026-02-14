@@ -85,4 +85,4 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, loading, error }
   );
 };
 
-export default WeatherWidget;
+export default React.memo(WeatherWidget);
