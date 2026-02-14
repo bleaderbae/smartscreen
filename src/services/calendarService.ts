@@ -15,6 +15,13 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
   // We'll try to fetch, but warn that a proxy might be needed.
   const fetchPromises = Object.entries(urls).map(async ([name, url]) => {
     try {
+      // Validate URL protocol to prevent non-http/https requests (SSRF protection)
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        console.warn(`Skipping calendar for ${name}: Invalid protocol ${parsedUrl.protocol}`);
+        return [];
+      }
+
       // In a production environment, we'd use a proxy to avoid CORS.
       // For a local dev hub, we'll try direct or expect a local proxy.
       const response = await axios.get(url);
