@@ -55,14 +55,14 @@ describe('fetchCalendarEvents', () => {
     const event2 = mockICalData('Event 2', addDays(today, 2));
 
     vi.mocked(axios.get).mockImplementation((url) => {
-        if (url === 'url1') return Promise.resolve({ data: event1 });
-        if (url === 'url2') return Promise.resolve({ data: event2 });
+        if (url === 'http://example.com/cal1.ics') return Promise.resolve({ data: event1 });
+        if (url === 'http://example.com/cal2.ics') return Promise.resolve({ data: event2 });
         return Promise.reject(new Error('Not found'));
     });
 
     const urls = {
-      'User1': 'url1',
-      'User2': 'url2'
+      'User1': 'http://example.com/cal1.ics',
+      'User2': 'http://example.com/cal2.ics'
     };
 
     const events = await fetchCalendarEvents(urls);
@@ -79,14 +79,14 @@ describe('fetchCalendarEvents', () => {
     const event1 = mockICalData('Event 1', addDays(today, 1));
 
     vi.mocked(axios.get).mockImplementation((url) => {
-        if (url === 'url1') return Promise.resolve({ data: event1 });
-        if (url === 'url2') return Promise.reject(new Error('Network error'));
+        if (url === 'http://example.com/cal1.ics') return Promise.resolve({ data: event1 });
+        if (url === 'http://example.com/cal2.ics') return Promise.reject(new Error('Network error'));
         return Promise.reject(new Error('Not found'));
     });
 
     const urls = {
-      'User1': 'url1',
-      'User2': 'url2'
+      'User1': 'http://example.com/cal1.ics',
+      'User2': 'http://example.com/cal2.ics'
     };
 
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
