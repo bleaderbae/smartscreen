@@ -109,4 +109,4 @@ const ChoreGrid: React.FC = () => {
   );
 };
 
-export default ChoreGrid;
+export default React.memo(ChoreGrid);
