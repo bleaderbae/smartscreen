@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Loader, User, X } from 'lucide-react';
 import type { CalendarEvent } from '../services/calendarService';
 import { FAMILY_PROFILES } from '../config';
@@ -32,6 +32,22 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ events, loading }) => {
     return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
   }, [events]);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsExpanded(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!isExpanded) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsExpanded(false);
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isExpanded]);
+
   if (loading && !isExpanded) {
     return (
       <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 min-h-[200px] flex items-center justify-center">
@@ -46,7 +62,10 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ events, loading }) => {
         role="button"
         tabIndex={0}
         onClick={() => setIsExpanded(true)}
-        className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 min-h-[200px] flex flex-col justify-between active:scale-[0.98] transition-transform cursor-pointer outline-none"
+        onKeyDown={handleKeyDown}
+        aria-label="Calendar: No upcoming events. Tap to see full week."
+        aria-expanded={isExpanded}
+        className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 min-h-[200px] flex flex-col justify-between active:scale-[0.98] transition-transform cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
       >
         <div className="flex items-center gap-2 mb-4">
           <div className="p-2 bg-red-500/10 rounded-xl">
@@ -68,6 +87,9 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ events, loading }) => {
         role="button"
         tabIndex={0}
         onClick={() => setIsExpanded(true)}
+        onKeyDown={handleKeyDown}
+        aria-label={nextEvent ? `Next event: ${nextEvent.summary} at ${formatEventTime(nextEvent.startDate)}` : "Calendar: Clear schedule"}
+        aria-expanded={isExpanded}
         className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 min-h-[200px] flex flex-col justify-between active:scale-[0.98] transition-transform cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
       >
         <div>
@@ -107,6 +129,9 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ events, loading }) => {
       {/* Expanded Weekly Agenda Modal */}
       {isExpanded && (
         <div 
+          role="dialog"
+          aria-modal="true"
+          aria-label="Family Agenda"
           className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl animate-fadeIn flex flex-col p-8 select-none"
           onClick={() => setIsExpanded(false)}
         >
