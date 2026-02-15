@@ -65,7 +65,7 @@ export const FAMILY_PROFILES: Record<string, FamilyMember> = {
 // For backward compatibility or helper function
 export const CALENDAR_URLS: Record<string, string> = Object.fromEntries(
   Object.entries(FAMILY_PROFILES)
-    .filter(([_, member]) => member.calendarUrl)
+    .filter(([, member]) => member.calendarUrl)
     .map(([name, member]) => [name, member.calendarUrl])
 );
 
