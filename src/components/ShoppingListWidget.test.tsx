@@ -59,4 +59,18 @@ describe('ShoppingListWidget', () => {
     const milkListItems = screen.getAllByRole('button', { name: /Toggle Milk/i });
     expect(milkListItems.length).toBe(1);
   });
+
+  it('handles corrupted localStorage gracefully', () => {
+    localStorage.setItem('shopping-list', 'INVALID_JSON{');
+
+    // This should not throw an error and render default items or empty list
+    // Currently it throws, so we expect this test to fail until we fix it.
+    // However, to make the test pass after fix, we assert that it renders default items.
+
+    // We wrap render in a try-catch to prevent test suite crash if not handled
+    render(<ShoppingListWidget />);
+    // If it renders, check for default items (Milk)
+    // Note: Milk appears in Quick Add and Active List, so we expect multiple
+    expect(screen.getAllByText('Milk').length).toBeGreaterThan(0);
+  });
 });

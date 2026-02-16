@@ -14,6 +14,7 @@ import {
   Trash2,
   type LucideIcon
 } from 'lucide-react';
+import { safeJSONParse } from '../utils/security';
 
 interface ShoppingItem {
   id: string;
@@ -40,11 +41,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
 const ShoppingListWidget: React.FC = () => {
   const [items, setItems] = useState<ShoppingItem[]>(() => {
     const saved = localStorage.getItem('shopping-list');
-    return saved ? JSON.parse(saved) : [
+    return safeJSONParse(saved, [
       { id: '1', text: 'Milk', completed: false, icon: 'Milk', color: 'blue' },
       { id: '2', text: 'Avocados', completed: false },
       { id: '3', text: 'Whole Grain Bread', completed: false },
-    ];
+    ]);
   });
 
   useEffect(() => {
