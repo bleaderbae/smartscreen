@@ -11,6 +11,10 @@ export interface CalendarEvent {
 }
 
 export const fetchCalendarEvents = async (urls: Record<string, string>): Promise<CalendarEvent[]> => {
+  // Define date range for filtering (now to 7 days ahead)
+  const now = new Date();
+  const nextWeek = addDays(now, 7);
+
   // NWS and other public APIs are fine, but external calendars often have CORS issues.
   // We'll try to fetch, but warn that a proxy might be needed.
   const fetchPromises = Object.entries(urls).map(async ([name, url]) => {
@@ -29,16 +33,30 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
       const comp = new ICAL.Component(jcalData);
       const vevents = comp.getAllSubcomponents('vevent');
 
-      return vevents.map(vevent => {
-        const event = new ICAL.Event(vevent);
-        return {
-          summary: event.summary,
-          startDate: event.startDate.toJSDate(),
-          endDate: event.endDate.toJSDate(),
-          location: event.location,
-          source: name
-        };
-      });
+      // Optimize: Filter events during processing to avoid creating objects for past/future events
+      return vevents.reduce<CalendarEvent[]>((acc, vevent) => {
+        try {
+          const event = new ICAL.Event(vevent);
+          const startDate = event.startDate.toJSDate();
+          const endDate = event.endDate.toJSDate();
+
+          // Check if event is within the next 7 days (and not already ended)
+          if (isAfter(endDate, now) && isBefore(startDate, nextWeek)) {
+            acc.push({
+              summary: event.summary,
+              startDate,
+              endDate,
+              location: event.location,
+              source: name
+            });
+          }
+        } catch (e) {
+          // specific event parsing error, skip this event
+          console.warn(`Failed to parse an event in calendar ${name}`, e);
+        }
+        return acc;
+      }, []);
+
     } catch (error) {
       console.error(`Failed to fetch calendar: ${name}`, error);
       return [];
@@ -48,11 +66,6 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
   const results = await Promise.all(fetchPromises);
   const allEvents = results.flat();
 
-  // Sort by date and filter for future events (up to 7 days out)
-  const now = new Date();
-  const nextWeek = addDays(now, 7);
-
-  return allEvents
-    .filter(e => isAfter(e.endDate, now) && isBefore(e.startDate, nextWeek))
-    .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  // Sort by date
+  return allEvents.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 };
