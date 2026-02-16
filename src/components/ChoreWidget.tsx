@@ -36,11 +36,23 @@ const ChoreWidget: React.FC<ChoreWidgetProps> = ({
     pill: `bg-${color}-500/20 text-${color}-300 border-${color}-500/30`
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggle(id);
+    }
+  };
+
+  const label = `${text}, ${frequency} chore${assignedTo ? `, assigned to ${assignedTo}` : ''}`;
+
   return (
     <div 
       role="button"
       tabIndex={0}
       onClick={() => onToggle(id)}
+      onKeyDown={handleKeyDown}
+      aria-pressed={completed}
+      aria-label={label}
       className={`
         relative overflow-hidden rounded-3xl p-4 flex flex-col items-center justify-center gap-3
         transition-all duration-300 active:scale-90 cursor-pointer border-2
