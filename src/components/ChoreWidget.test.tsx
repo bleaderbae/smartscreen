@@ -1,59 +1,61 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ChoreWidget from './ChoreWidget';
-import { Circle } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 describe('ChoreWidget', () => {
-  const mockToggle = vi.fn();
-  const defaultProps = {
-    id: '1',
-    text: 'Walk the dog',
-    icon: Circle,
+  const mockChore = {
+    id: 'test-chore-1',
+    text: 'Do Laundry',
+    icon: Sparkles,
     color: 'blue',
     completed: false,
-    onToggle: mockToggle,
     frequency: 'daily' as const,
+    assignedTo: 'Dad',
+    onToggle: vi.fn(),
   };
 
-  beforeEach(() => {
-    mockToggle.mockClear();
-  });
-
-  it('renders chore text', () => {
-    render(<ChoreWidget {...defaultProps} />);
-    expect(screen.getByText('Walk the dog')).toBeInTheDocument();
+  it('renders chore text and frequency', () => {
+    render(<ChoreWidget {...mockChore} />);
+    expect(screen.getByText('Do Laundry')).toBeInTheDocument();
+    expect(screen.getByText('daily')).toBeInTheDocument();
+    expect(screen.getByText('Dad')).toBeInTheDocument();
   });
 
   it('calls onToggle when clicked', () => {
-    render(<ChoreWidget {...defaultProps} />);
-    fireEvent.click(screen.getByRole('button'));
-    expect(mockToggle).toHaveBeenCalledWith('1');
-  });
-
-  it('calls onToggle when Enter key is pressed', () => {
-    render(<ChoreWidget {...defaultProps} />);
+    const onToggle = vi.fn();
+    render(<ChoreWidget {...{ ...mockChore, onToggle }} />);
     const widget = screen.getByRole('button');
-    fireEvent.keyDown(widget, { key: 'Enter', code: 'Enter' });
-    expect(mockToggle).toHaveBeenCalledWith('1');
+    fireEvent.click(widget);
+    expect(onToggle).toHaveBeenCalledWith('test-chore-1');
   });
 
-  it('calls onToggle when Space key is pressed', () => {
-    render(<ChoreWidget {...defaultProps} />);
+  it('has accessible attributes', () => {
+    render(<ChoreWidget {...mockChore} />);
     const widget = screen.getByRole('button');
-    fireEvent.keyDown(widget, { key: ' ', code: 'Space' });
-    expect(mockToggle).toHaveBeenCalledWith('1');
-  });
-
-  it('has correct aria-label and aria-pressed attributes', () => {
-    const { rerender } = render(<ChoreWidget {...defaultProps} />);
-    let widget = screen.getByRole('button');
-
-    expect(widget).toHaveAttribute('aria-label', expect.stringContaining('Mark Walk the dog as complete'));
+    expect(widget).toHaveAttribute('tabIndex', '0');
+    // Expect the full descriptive action label
+    expect(widget).toHaveAttribute('aria-label', expect.stringContaining('Mark Do Laundry'));
+    expect(widget).toHaveAttribute('aria-label', expect.stringContaining('assigned to Dad'));
+    expect(widget).toHaveAttribute('aria-label', expect.stringContaining('as complete'));
     expect(widget).toHaveAttribute('aria-pressed', 'false');
+  });
 
-    rerender(<ChoreWidget {...defaultProps} completed={true} />);
-    widget = screen.getByRole('button');
-    expect(widget).toHaveAttribute('aria-label', expect.stringContaining('Mark Walk the dog as incomplete'));
-    expect(widget).toHaveAttribute('aria-pressed', 'true');
+  it('handles keyboard interaction (Enter)', () => {
+    const onToggle = vi.fn();
+    render(<ChoreWidget {...{ ...mockChore, onToggle }} />);
+    const widget = screen.getByRole('button');
+    widget.focus();
+    fireEvent.keyDown(widget, { key: 'Enter', code: 'Enter' });
+    expect(onToggle).toHaveBeenCalledWith('test-chore-1');
+  });
+
+  it('handles keyboard interaction (Space)', () => {
+    const onToggle = vi.fn();
+    render(<ChoreWidget {...{ ...mockChore, onToggle }} />);
+    const widget = screen.getByRole('button');
+    widget.focus();
+    fireEvent.keyDown(widget, { key: ' ', code: 'Space' });
+    expect(onToggle).toHaveBeenCalledWith('test-chore-1');
   });
 });

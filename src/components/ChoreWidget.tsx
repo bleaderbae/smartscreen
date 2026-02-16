@@ -43,13 +43,16 @@ const ChoreWidget: React.FC<ChoreWidgetProps> = ({
     }
   };
 
+  const baseLabel = `${text}, ${frequency} chore${assignedTo ? `, assigned to ${assignedTo}` : ''}`;
+  const ariaLabel = `Mark ${baseLabel} as ${completed ? 'incomplete' : 'complete'}`;
+
   return (
     <div 
       role="button"
       tabIndex={0}
       onClick={() => onToggle(id)}
       onKeyDown={handleKeyDown}
-      aria-label={`Mark ${text} as ${completed ? 'incomplete' : 'complete'}`}
+      aria-label={ariaLabel}
       aria-pressed={completed}
       className={`
         relative overflow-hidden rounded-3xl p-4 flex flex-col items-center justify-center gap-3

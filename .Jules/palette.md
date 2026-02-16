@@ -7,3 +7,6 @@
 ## 2026-02-12 - Nested Interactive List Items
 **Learning:** List items (`li`) acting as buttons (`role="button"`) create semantic conflicts when they contain other interactive elements like delete buttons. This confuses screen readers and limits touch targets.
 **Action:** Remove `role="button"` from the `li` container. Instead, use a flex layout where the primary action (e.g., toggle) is wrapped in a dedicated interactive element (using `flex-1` for full width), and secondary actions sit alongside it. This ensures valid semantics and better touch targets.
+## 2026-02-12 - Toggle State Accessibility
+**Learning:** Interactive widgets that toggle state (like `ChoreWidget`) must verify `aria-pressed` to communicate the current state to screen readers, in addition to `role="button"`.
+**Action:** Always pair `role="button"` with `aria-pressed={boolean}` for toggleable elements, and ensure `aria-label` describes the action and context, not just the label text.
