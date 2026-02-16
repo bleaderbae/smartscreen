@@ -36,14 +36,24 @@ const ChoreWidget: React.FC<ChoreWidgetProps> = ({
     pill: `bg-${color}-500/20 text-${color}-300 border-${color}-500/30`
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggle(id);
+    }
+  };
+
   return (
     <div 
       role="button"
       tabIndex={0}
       onClick={() => onToggle(id)}
+      onKeyDown={handleKeyDown}
+      aria-label={`Mark ${text} as ${completed ? 'incomplete' : 'complete'}`}
+      aria-pressed={completed}
       className={`
         relative overflow-hidden rounded-3xl p-4 flex flex-col items-center justify-center gap-3
-        transition-all duration-300 active:scale-90 cursor-pointer border-2
+        transition-all duration-300 active:scale-90 cursor-pointer border-2 outline-none focus-visible:ring-2 focus-visible:ring-blue-400
         ${completed 
           ? 'bg-green-500/20 border-green-500/50' 
           : `${theme.bg} ${theme.border} hover:border-white/20`
