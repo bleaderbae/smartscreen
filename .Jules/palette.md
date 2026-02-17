@@ -10,3 +10,6 @@
 ## 2026-02-12 - Toggle State Accessibility
 **Learning:** Interactive widgets that toggle state (like `ChoreWidget`) must verify `aria-pressed` to communicate the current state to screen readers, in addition to `role="button"`.
 **Action:** Always pair `role="button"` with `aria-pressed={boolean}` for toggleable elements, and ensure `aria-label` describes the action and context, not just the label text.
+## 2026-02-12 - Conflicting Active States
+**Learning:** Placing `active:scale` on a container (like `li`) that houses multiple interactive elements (like a delete button) causes confusing visual feedback where the whole row shrinks when the secondary action is tapped.
+**Action:** Move `active` states to the specific interactive child elements. This isolates the feedback and prevents "ghost" interactions. Also, always pair `role="button"` with `aria-pressed` for toggle actions.

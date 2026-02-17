@@ -128,15 +128,16 @@ const ShoppingListWidget: React.FC = () => {
             return (
               <li 
                 key={item.id}
-                className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all border border-transparent active:border-white/10 group"
+                className="flex items-center justify-between p-4 bg-white/5 rounded-2xl transition-all border border-transparent group"
               >
                 <div
                   role="button"
                   tabIndex={0}
                   onClick={() => toggleItem(item.id)}
                   onKeyDown={(e) => handleKeyDown(e, item.id)}
+                  aria-pressed={item.completed}
                   aria-label={`Toggle ${item.text}`}
-                  className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
+                  className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg active:scale-[0.98] transition-transform"
                 >
                   <div className="relative">
                     {item.completed ? (
@@ -157,7 +158,7 @@ const ShoppingListWidget: React.FC = () => {
                 
                 <button 
                   onClick={(e) => removeItem(e, item.id)}
-                  className="p-2 text-gray-600 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
+                  className="p-2 text-gray-600 hover:text-red-400 transition-all focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2 active:scale-90 active:text-red-500"
                   aria-label={`Remove ${item.text}`}
                 >
                   <Trash2 size={18} />

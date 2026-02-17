@@ -29,10 +29,12 @@ describe('ShoppingListWidget', () => {
     
     // Initially not completed
     expect(itemText).not.toHaveClass('line-through');
+    expect(itemButton).toHaveAttribute('aria-pressed', 'false');
 
     // Click to toggle
     fireEvent.click(itemButton);
     expect(itemText).toHaveClass('line-through');
+    expect(itemButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('adds an item via quick add', () => {
