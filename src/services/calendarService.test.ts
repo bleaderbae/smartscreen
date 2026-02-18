@@ -43,7 +43,7 @@ describe('fetchCalendarEvents', () => {
 
     const events = await fetchCalendarEvents(urls);
 
-    expect(axios.get).toHaveBeenCalledWith('http://example.com/calendar1.ics');
+    expect(axios.get).toHaveBeenCalledWith('http://example.com/calendar1.ics', expect.anything());
     expect(events).toHaveLength(1);
     expect(events[0].summary).toBe(eventSummary);
     expect(events[0].source).toBe('User1');

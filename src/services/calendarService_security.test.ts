@@ -73,6 +73,32 @@ END:VCALENDAR`
     // with the current implementation because it DOES call axios for everything.
 
     await fetchCalendarEvents(urls);
-    expect(axios.get).toHaveBeenCalledWith(validUrl);
+    expect(axios.get).toHaveBeenCalledWith(
+      validUrl,
+      expect.objectContaining({
+        timeout: 10000
+      })
+    );
+  });
+
+  it('enforces a timeout on calendar requests', async () => {
+    const validUrl = 'https://example.com/calendar.ics';
+    const urls = { 'TimeoutTest': validUrl };
+
+    vi.mocked(axios.get).mockResolvedValue({
+      data: 'BEGIN:VCALENDAR\nEND:VCALENDAR'
+    });
+
+    await fetchCalendarEvents(urls);
+
+    // Verify axios was called with a timeout (e.g., 10 seconds) and size limits
+    expect(axios.get).toHaveBeenCalledWith(
+      validUrl,
+      expect.objectContaining({
+        timeout: 10000,
+        maxContentLength: 5242880,
+        maxBodyLength: 5242880
+      })
+    );
   });
 });

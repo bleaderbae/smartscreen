@@ -28,7 +28,13 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
 
       // In a production environment, we'd use a proxy to avoid CORS.
       // For a local dev hub, we'll try direct or expect a local proxy.
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        // Security: Add timeout to prevent hanging requests (DoS)
+        timeout: 10000, // 10 seconds
+        // Security: Add size limits to prevent large file downloads (DoS/OOM)
+        maxContentLength: 5 * 1024 * 1024, // 5MB
+        maxBodyLength: 5 * 1024 * 1024 // 5MB
+      });
       const jcalData = ICAL.parse(response.data);
       const comp = new ICAL.Component(jcalData);
       const vevents = comp.getAllSubcomponents('vevent');
