@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, 
-  Plus, 
   CheckCircle2, 
   Circle, 
   Milk, 
@@ -91,12 +90,6 @@ const ShoppingListWidget: React.FC = () => {
           </div>
           <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Shopping List</span>
         </div>
-        <button 
-          className="p-2 bg-white/5 rounded-full text-blue-400 active:scale-90 transition-transform"
-          aria-label="Add item"
-        >
-          <Plus size={24} />
-        </button>
       </div>
 
       {/* Quick Add Menu */}
@@ -157,7 +150,7 @@ const ShoppingListWidget: React.FC = () => {
                 
                 <button 
                   onClick={(e) => removeItem(e, item.id)}
-                  className="p-2 text-gray-600 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
+                  className="p-2 text-gray-600 hover:text-red-400 transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
                   aria-label={`Remove ${item.text}`}
                 >
                   <Trash2 size={18} />

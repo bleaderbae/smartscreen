@@ -113,7 +113,7 @@ const DailyFeedWidget: React.FC = () => {
           <button
             aria-label="Close"
             onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
-            className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors bg-white/10 p-2 rounded-full hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white outline-none"
+            className="absolute top-8 right-8 text-white/50 hover:text-white transition-all active:scale-90 bg-white/10 p-2 rounded-full hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white outline-none"
           >
             <X size={32} />
           </button>

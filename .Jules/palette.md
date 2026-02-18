@@ -10,3 +10,6 @@
 ## 2026-02-12 - Toggle State Accessibility
 **Learning:** Interactive widgets that toggle state (like `ChoreWidget`) must verify `aria-pressed` to communicate the current state to screen readers, in addition to `role="button"`.
 **Action:** Always pair `role="button"` with `aria-pressed={boolean}` for toggleable elements, and ensure `aria-label` describes the action and context, not just the label text.
+## 2026-02-12 - False Affordances
+**Learning:** Static widgets (like Weather) that mimic interactive cards (using `role="button"`, `cursor: pointer`) confuse users and violate accessibility standards.
+**Action:** Remove interactive roles and styles from non-interactive elements. If an element looks clickable, it must be clickable.

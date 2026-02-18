@@ -22,10 +22,8 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, loading, error }
 
   return (
     <div 
-      role="button"
-      tabIndex={0}
       className={`
-        rounded-3xl p-6 flex flex-col justify-between min-h-[240px] active:scale-[0.98] transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 border-2
+        rounded-3xl p-6 flex flex-col justify-between min-h-[240px] transition-all border-2
         ${loading || !weather ? 'bg-gray-900/50 border-gray-800' : `${theme?.bg} ${theme?.border}`}
       `}
     >
