@@ -28,7 +28,18 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
 
       // In a production environment, we'd use a proxy to avoid CORS.
       // For a local dev hub, we'll try direct or expect a local proxy.
-      const response = await axios.get(url);
+      // 🛡️ Sentinel: Added timeout and responseType text to prevent DoS (hanging requests)
+      const response = await axios.get(url, {
+        timeout: 10000, // 10 seconds timeout
+        responseType: 'text' // Ensure we get a string
+      });
+
+      // 🛡️ Sentinel: Check response size to prevent memory exhaustion (DoS)
+      // Limit to 5MB
+      if (response.data.length > 5 * 1024 * 1024) {
+        throw new Error('Calendar file exceeds size limit (5MB)');
+      }
+
       const jcalData = ICAL.parse(response.data);
       const comp = new ICAL.Component(jcalData);
       const vevents = comp.getAllSubcomponents('vevent');
@@ -58,6 +69,8 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
       }, []);
 
     } catch (error) {
+      // Log generic error message but avoid leaking stack traces or sensitive data if possible
+      // For calendar fetch, logging the name and error message is generally safe and useful for debugging
       console.error(`Failed to fetch calendar: ${name}`, error);
       return [];
     }
