@@ -10,3 +10,9 @@
 ## 2026-02-12 - Toggle State Accessibility
 **Learning:** Interactive widgets that toggle state (like `ChoreWidget`) must verify `aria-pressed` to communicate the current state to screen readers, in addition to `role="button"`.
 **Action:** Always pair `role="button"` with `aria-pressed={boolean}` for toggleable elements, and ensure `aria-label` describes the action and context, not just the label text.
+## 2026-02-19 - False Affordances
+**Learning:** The "Add Item" button had `aria-label` and visual styling suggesting interactivity, but no handler. This creates user frustration and broken promises.
+**Action:** Audit interactive-looking elements (icons, buttons) to ensure they have corresponding handlers. If functionality is missing, either implement it, hide the element, or clearly mark it as disabled.
+## 2026-02-19 - Inline Expansion for Input
+**Learning:** For quick data entry on touch screens, toggling an inline input field (rather than a modal) keeps context and reduces friction.
+**Action:** Prefer inline expansion for simple "add new" actions in lists. Use autoFocus to immediately ready the input for keyboard users.

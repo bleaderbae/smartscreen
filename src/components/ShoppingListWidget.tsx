@@ -46,6 +46,8 @@ const ShoppingListWidget: React.FC = () => {
       { id: '3', text: 'Whole Grain Bread', completed: false },
     ];
   });
+  const [isAdding, setIsAdding] = useState(false);
+  const [newItemText, setNewItemText] = useState('');
 
   useEffect(() => {
     localStorage.setItem('shopping-list', JSON.stringify(items));
@@ -92,12 +94,45 @@ const ShoppingListWidget: React.FC = () => {
           <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Shopping List</span>
         </div>
         <button 
-          className="p-2 bg-white/5 rounded-full text-blue-400 active:scale-90 transition-transform"
-          aria-label="Add item"
+          onClick={() => setIsAdding(!isAdding)}
+          className={`p-2 rounded-full text-blue-400 active:scale-90 transition-all ${isAdding ? 'bg-blue-500/20 rotate-45' : 'bg-white/5'}`}
+          aria-label={isAdding ? "Cancel add" : "Add item"}
         >
           <Plus size={24} />
         </button>
       </div>
+
+      {isAdding && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (newItemText.trim()) {
+              addItem(newItemText.trim());
+              setNewItemText('');
+              setIsAdding(false);
+            }
+          }}
+          className="flex gap-2 animate-fadeIn"
+        >
+          <input
+            autoFocus
+            type="text"
+            value={newItemText}
+            onChange={(e) => setNewItemText(e.target.value)}
+            placeholder="What do you need?"
+            className="flex-1 bg-white/5 rounded-xl px-4 py-2 text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-400 border border-transparent focus:border-blue-400/50 transition-all"
+            aria-label="New item name"
+          />
+          <button
+            type="submit"
+            disabled={!newItemText.trim()}
+            className="p-2 bg-blue-500 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            aria-label="Confirm add item"
+          >
+            <Plus size={24} />
+          </button>
+        </form>
+      )}
 
       {/* Quick Add Menu */}
       <div className="space-y-3">
@@ -135,6 +170,7 @@ const ShoppingListWidget: React.FC = () => {
                   tabIndex={0}
                   onClick={() => toggleItem(item.id)}
                   onKeyDown={(e) => handleKeyDown(e, item.id)}
+                  aria-pressed={item.completed}
                   aria-label={`Toggle ${item.text}`}
                   className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
                 >
