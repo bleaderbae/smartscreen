@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { ListChecks, CalendarDays, LayoutGrid } from 'lucide-react';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
 import ChoreWidget from './ChoreWidget';
@@ -45,7 +45,8 @@ const ChoreGrid: React.FC = () => {
     return getChoresForDate(choresWithCompletion, today);
   }, [choresWithCompletion, today, viewMode]);
 
-  const toggleChore = (id: string) => {
+  // Memoized toggle handler to prevent unnecessary re-renders of ChoreWidget components
+  const toggleChore = useCallback((id: string) => {
     const chore = INITIAL_CHORES.find(c => c.id === id);
     if (!chore) return;
 
@@ -54,7 +55,7 @@ const ChoreGrid: React.FC = () => {
       ...prev,
       [key]: !prev[key]
     }));
-  };
+  }, [today]);
 
   const sections = [
     { id: 'daily', label: 'Daily', icon: LayoutGrid, color: 'text-orange-400' },

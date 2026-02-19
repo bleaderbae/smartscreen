@@ -106,4 +106,5 @@ const ChoreWidget: React.FC<ChoreWidgetProps> = ({
   );
 };
 
-export default ChoreWidget;
+// Memoized to prevent re-renders when other chores are toggled
+export default React.memo(ChoreWidget);
