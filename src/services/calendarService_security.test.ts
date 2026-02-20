@@ -73,6 +73,24 @@ END:VCALENDAR`
     // with the current implementation because it DOES call axios for everything.
 
     await fetchCalendarEvents(urls);
-    expect(axios.get).toHaveBeenCalledWith(validUrl);
+    expect(axios.get).toHaveBeenCalledWith(validUrl, expect.anything());
+  });
+
+  it('calls axios with timeout and size limits', async () => {
+    const validUrl = 'https://example.com/calendar.ics';
+    const urls = { 'GoodUser': validUrl };
+
+    vi.mocked(axios.get).mockResolvedValue({
+      data: `BEGIN:VCALENDAR
+VERSION:2.0
+END:VCALENDAR`
+    });
+
+    await fetchCalendarEvents(urls);
+
+    expect(axios.get).toHaveBeenCalledWith(validUrl, expect.objectContaining({
+      timeout: 10000,
+      maxContentLength: 5242880 // 5MB
+    }));
   });
 });
