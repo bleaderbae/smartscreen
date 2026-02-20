@@ -106,4 +106,5 @@ const ChoreWidget: React.FC<ChoreWidgetProps> = ({
   );
 };
 
-export default ChoreWidget;
+// Optimized: Use React.memo to prevent re-renders when props (including onToggle) haven't changed
+export default React.memo(ChoreWidget);
