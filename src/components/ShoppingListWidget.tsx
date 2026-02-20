@@ -38,6 +38,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
 };
 
 const ShoppingListWidget: React.FC = () => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [newItemText, setNewItemText] = useState('');
+
   const [items, setItems] = useState<ShoppingItem[]>(() => {
     const saved = localStorage.getItem('shopping-list');
     return saved ? JSON.parse(saved) : [
@@ -92,12 +95,48 @@ const ShoppingListWidget: React.FC = () => {
           <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Shopping List</span>
         </div>
         <button 
-          className="p-2 bg-white/5 rounded-full text-blue-400 active:scale-90 transition-transform"
-          aria-label="Add item"
+          onClick={() => setIsAdding(!isAdding)}
+          className={`p-2 rounded-full text-blue-400 active:scale-90 transition-all ${isAdding ? 'bg-blue-500/20 rotate-45' : 'bg-white/5'}`}
+          aria-label={isAdding ? "Cancel adding item" : "Add item"}
+          aria-expanded={isAdding}
         >
           <Plus size={24} />
         </button>
       </div>
+
+      {isAdding && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (newItemText.trim()) {
+              addItem(newItemText.trim());
+              setNewItemText('');
+              setIsAdding(false);
+            }
+          }}
+          className="animate-fadeIn"
+        >
+          <div className="flex gap-2">
+            <input
+              autoFocus
+              type="text"
+              value={newItemText}
+              onChange={(e) => setNewItemText(e.target.value)}
+              placeholder="What do you need?"
+              className="flex-1 bg-white/10 rounded-xl px-4 py-3 text-lg text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-400 border border-white/5"
+              aria-label="New item name"
+            />
+            <button
+              type="submit"
+              disabled={!newItemText.trim()}
+              className="px-4 bg-blue-500/20 text-blue-400 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500/30 transition-colors"
+              aria-label="Confirm add item"
+            >
+              <Plus size={24} />
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* Quick Add Menu */}
       <div className="space-y-3">
@@ -136,6 +175,7 @@ const ShoppingListWidget: React.FC = () => {
                   onClick={() => toggleItem(item.id)}
                   onKeyDown={(e) => handleKeyDown(e, item.id)}
                   aria-label={`Toggle ${item.text}`}
+                  aria-pressed={item.completed}
                   className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
                 >
                   <div className="relative">
