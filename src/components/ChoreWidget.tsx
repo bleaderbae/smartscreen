@@ -106,4 +106,5 @@ const ChoreWidget: React.FC<ChoreWidgetProps> = ({
   );
 };
 
-export default ChoreWidget;
+// Memoize to prevent re-renders when parent (ChoreGrid) updates state for OTHER chores
+export default React.memo(ChoreWidget);

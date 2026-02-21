@@ -1,8 +1,30 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { ListChecks, CalendarDays, LayoutGrid } from 'lucide-react';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
 import ChoreWidget from './ChoreWidget';
 import { INITIAL_CHORES, getChoresForDate, type Chore } from '../services/choreService';
+
+// Extracted to module scope to avoid recreation on every render
+const getCompletionKey = (chore: Chore, date: Date) => {
+  if (chore.frequency === 'daily') {
+    return `daily-${chore.id}-${format(date, 'yyyy-MM-dd')}`;
+  }
+  if (chore.frequency === 'weekly') {
+    // Use the start of the week as the key suffix
+    return `weekly-${chore.id}-${format(startOfWeek(date), 'yyyy-MM-dd')}`;
+  }
+  if (chore.frequency === 'monthly') {
+    return `monthly-${chore.id}-${format(startOfMonth(date), 'yyyy-MM')}`;
+  }
+  return `${chore.id}`;
+};
+
+// Extracted to module scope
+const SECTIONS = [
+  { id: 'daily', label: 'Daily', icon: LayoutGrid, color: 'text-orange-400' },
+  { id: 'weekly', label: 'Weekly', icon: CalendarDays, color: 'text-blue-400' },
+  { id: 'monthly', label: 'Monthly', icon: ListChecks, color: 'text-purple-400' },
+];
 
 const ChoreGrid: React.FC = () => {
   const today = useMemo(() => new Date(), []);
@@ -19,20 +41,6 @@ const ChoreGrid: React.FC = () => {
     localStorage.setItem('chore-completions', JSON.stringify(completions));
   }, [completions]);
 
-  const getCompletionKey = (chore: Chore, date: Date) => {
-    if (chore.frequency === 'daily') {
-      return `daily-${chore.id}-${format(date, 'yyyy-MM-dd')}`;
-    }
-    if (chore.frequency === 'weekly') {
-      // Use the start of the week as the key suffix
-      return `weekly-${chore.id}-${format(startOfWeek(date), 'yyyy-MM-dd')}`;
-    }
-    if (chore.frequency === 'monthly') {
-      return `monthly-${chore.id}-${format(startOfMonth(date), 'yyyy-MM')}`;
-    }
-    return `${chore.id}`;
-  };
-
   const choresWithCompletion = useMemo(() => {
     return INITIAL_CHORES.map(chore => ({
       ...chore,
@@ -45,7 +53,8 @@ const ChoreGrid: React.FC = () => {
     return getChoresForDate(choresWithCompletion, today);
   }, [choresWithCompletion, today, viewMode]);
 
-  const toggleChore = (id: string) => {
+  // Memoize the callback to ensure stable reference for React.memo
+  const toggleChore = useCallback((id: string) => {
     const chore = INITIAL_CHORES.find(c => c.id === id);
     if (!chore) return;
 
@@ -54,13 +63,7 @@ const ChoreGrid: React.FC = () => {
       ...prev,
       [key]: !prev[key]
     }));
-  };
-
-  const sections = [
-    { id: 'daily', label: 'Daily', icon: LayoutGrid, color: 'text-orange-400' },
-    { id: 'weekly', label: 'Weekly', icon: CalendarDays, color: 'text-blue-400' },
-    { id: 'monthly', label: 'Monthly', icon: ListChecks, color: 'text-purple-400' },
-  ];
+  }, [today]);
 
   return (
     <div className="col-span-2 space-y-6">
@@ -79,7 +82,7 @@ const ChoreGrid: React.FC = () => {
       </div>
 
       <div className="space-y-8 pb-8">
-        {sections.map(section => {
+        {SECTIONS.map(section => {
           const sectionChores = displayedChores.filter(c => c.frequency === section.id);
           if (sectionChores.length === 0) return null;
 
