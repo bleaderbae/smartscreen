@@ -6,17 +6,17 @@ import * as Lucide from 'lucide-react';
 // Mock Lucide icons to count renders
 vi.mock('lucide-react', async (importOriginal) => {
   const actual = await importOriginal<typeof Lucide>();
-  // We mock Sun because we will set time to 10:00 AM
+  // We mock Sunrise because it is always rendered in the legend
   return {
     ...actual,
-    Sun: vi.fn((props) => <div data-testid="sun-icon" {...props} />),
+    Sunrise: vi.fn((props) => <div data-testid="sunrise-icon" {...props} />),
   };
 });
 
 describe('Clock Performance', () => {
   beforeEach(() => {
      vi.useFakeTimers();
-     // Set time to 10:00 AM (Day Time -> Sun icon)
+     // Set time to 10:00 AM
      const date = new Date(2024, 0, 1, 10, 0, 0);
      vi.setSystemTime(date);
   });
@@ -30,8 +30,8 @@ describe('Clock Performance', () => {
     render(<Clock />);
 
     // Initial render
-    // Sun should be called once
-    expect(vi.mocked(Lucide.Sun)).toHaveBeenCalledTimes(1);
+    // Sunrise should be called once
+    expect(vi.mocked(Lucide.Sunrise)).toHaveBeenCalledTimes(1);
 
     // Advance 1s
     await act(async () => {
@@ -39,7 +39,7 @@ describe('Clock Performance', () => {
     });
 
     // Should NOT be called again (still 1)
-    expect(vi.mocked(Lucide.Sun)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(Lucide.Sunrise)).toHaveBeenCalledTimes(1);
 
     // Advance another 1s
     await act(async () => {
@@ -47,7 +47,7 @@ describe('Clock Performance', () => {
     });
 
     // Should NOT be called again (still 1)
-    expect(vi.mocked(Lucide.Sun)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(Lucide.Sunrise)).toHaveBeenCalledTimes(1);
 
     // Advance by 60s (minute changes)
     await act(async () => {
@@ -55,6 +55,6 @@ describe('Clock Performance', () => {
     });
 
     // Should render again (total 2)
-    expect(vi.mocked(Lucide.Sun)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(Lucide.Sunrise)).toHaveBeenCalledTimes(2);
   });
 });

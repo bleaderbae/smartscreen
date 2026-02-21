@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import Clock from './Clock';
-import React from 'react';
 
 vi.mock('lucide-react', () => ({
   Sunrise: () => <div data-testid="icon-sunrise" />,
