@@ -135,7 +135,8 @@ const ShoppingListWidget: React.FC = () => {
                   tabIndex={0}
                   onClick={() => toggleItem(item.id)}
                   onKeyDown={(e) => handleKeyDown(e, item.id)}
-                  aria-label={`Toggle ${item.text}`}
+                  aria-label={item.text}
+                  aria-pressed={item.completed}
                   className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
                 >
                   <div className="relative">

@@ -9,9 +9,9 @@ describe('ShoppingListWidget', () => {
 
   it('renders default shopping items', () => {
     render(<ShoppingListWidget />);
-    // Check for items in the list (using specific toggle label)
-    expect(screen.getByRole('button', { name: /Toggle Milk/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Toggle Avocados/i })).toBeInTheDocument();
+    // Check for items in the list (using specific item name as label)
+    expect(screen.getByRole('button', { name: /^Milk$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Avocados$/i })).toBeInTheDocument();
   });
 
   it('renders quick add menu', () => {
@@ -24,29 +24,31 @@ describe('ShoppingListWidget', () => {
 
   it('toggles item completion state on click', () => {
     render(<ShoppingListWidget />);
-    const itemButton = screen.getByRole('button', { name: /Toggle Milk/i });
+    const itemButton = screen.getByRole('button', { name: /^Milk$/i });
     const itemText = within(itemButton).getByText('Milk');
     
     // Initially not completed
     expect(itemText).not.toHaveClass('line-through');
+    expect(itemButton).toHaveAttribute('aria-pressed', 'false');
 
     // Click to toggle
     fireEvent.click(itemButton);
     expect(itemText).toHaveClass('line-through');
+    expect(itemButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('adds an item via quick add', () => {
     render(<ShoppingListWidget />);
     
     // Check Eggs isn't in the active list initially
-    expect(screen.queryByRole('button', { name: /Toggle Eggs/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Eggs$/i })).not.toBeInTheDocument();
 
     // Click "Eggs" in the Quick Add menu
     const eggButton = screen.getByRole('button', { name: /Quick add Eggs/i });
     fireEvent.click(eggButton);
 
     // Now it should be in the list
-    expect(screen.getByRole('button', { name: /Toggle Eggs/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Eggs$/i })).toBeInTheDocument();
   });
 
   it('prevents duplicate active items from quick add', () => {
@@ -56,7 +58,7 @@ describe('ShoppingListWidget', () => {
     const milkQuickAdd = screen.getByRole('button', { name: /Quick add Milk/i });
     fireEvent.click(milkQuickAdd);
 
-    const milkListItems = screen.getAllByRole('button', { name: /Toggle Milk/i });
+    const milkListItems = screen.getAllByRole('button', { name: /^Milk$/i });
     expect(milkListItems.length).toBe(1);
   });
 });
