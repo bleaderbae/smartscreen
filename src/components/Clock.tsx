@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { format, differenceInMinutes, startOfDay, addHours } from 'date-fns';
+import { format } from 'date-fns';
 import { Sunrise, Sun, Sunset, Moon, Calendar } from 'lucide-react';
 import type { CalendarEvent } from '../services/calendarService';
 import { FAMILY_PROFILES } from '../config';
@@ -24,96 +24,129 @@ const Clock: React.FC<ClockProps> = ({ nextEvent }) => {
     return () => clearInterval(timer);
   }, []);
 
+  const hour = currentTime.getHours();
+  const minutes = currentTime.getMinutes();
+  const totalMinutes = hour * 60 + minutes;
+
+  // Day Progress (0 to 100)
+  const dayProgress = (totalMinutes / (24 * 60)) * 100;
+
+  // Calculate Sun/Moon position and visibility
+  // Sun is up from 6:00 (360m) to 20:00 (1200m)
+  const sunVisible = totalMinutes >= 360 && totalMinutes <= 1200;
+  const sunProgress = sunVisible ? (totalMinutes - 360) / (1200 - 360) : 0;
+  
+  // Arc calculation for "rising/setting" feel
+  // Using sine wave for height: sin(0) = 0, sin(PI/2) = 1, sin(PI) = 0
+  const sunHeight = sunVisible ? Math.sin(sunProgress * Math.PI) : 0;
+
   const timeContext = useMemo(() => {
-    const hour = currentTime.getHours();
     if (hour >= 5 && hour < 9) {
       return { 
         icon: <Sunrise size={48} className="text-orange-300" />, 
         label: 'Good Morning', 
-        color: 'text-orange-300' 
+        color: 'text-orange-300',
+        sunColor: 'bg-orange-400',
+        glow: 'shadow-[0_0_50px_20px_rgba(251,146,60,0.4)]',
       };
     }
     if (hour >= 9 && hour < 17) {
       return { 
         icon: <Sun size={48} className="text-yellow-400" />, 
         label: 'Day Time', 
-        color: 'text-yellow-400' 
+        color: 'text-yellow-400',
+        sunColor: 'bg-yellow-100',
+        glow: 'shadow-[0_0_60px_30px_rgba(253,224,71,0.3)]',
       };
     }
     if (hour >= 17 && hour < 20) {
       return { 
         icon: <Sunset size={48} className="text-orange-500" />, 
         label: 'Dusk', 
-        color: 'text-orange-500' 
+        color: 'text-orange-500',
+        sunColor: 'bg-orange-500',
+        glow: 'shadow-[0_0_50px_20px_rgba(234,88,12,0.4)]',
       };
     }
     return { 
       icon: <Moon size={48} className="text-blue-200" />, 
       label: 'Quiet Time', 
-      color: 'text-blue-200' 
+      color: 'text-blue-200',
+      sunColor: 'bg-blue-50',
+      glow: 'shadow-[0_0_40px_15px_rgba(191,219,254,0.3)]',
     };
-  }, [currentTime]);
-
-  const dayProgress = useMemo(() => {
-    const start = addHours(startOfDay(currentTime), 6); // 6 AM
-    const end = addHours(startOfDay(currentTime), 20); // 8 PM
-    
-    if (currentTime < start) return 0;
-    if (currentTime > end) return 100;
-    
-    const totalMinutes = differenceInMinutes(end, start);
-    const elapsedMinutes = differenceInMinutes(currentTime, start);
-    return (elapsedMinutes / totalMinutes) * 100;
-  }, [currentTime]);
+  }, [hour]);
 
   const nextEventTheme = nextEvent ? FAMILY_PROFILES[nextEvent.source]?.theme : null;
 
   return (
     <div className="flex flex-col items-center mt-8 mb-12 w-full max-w-2xl mx-auto">
-      {/* Time Context Icon & Label */}
-      <div className="flex flex-col items-center gap-2 mb-6">
-        <div className="p-4 bg-white/5 rounded-3xl mb-2">
-          {timeContext.icon}
-        </div>
-        <span className={`text-xs font-black uppercase tracking-[0.3em] ${timeContext.color}`}>
-          {timeContext.label}
-        </span>
-      </div>
-      
       {/* Digital Clock */}
       <div className="text-center">
-        <h1 className="text-9xl font-thin tracking-tighter leading-none flex items-baseline justify-center">
+        <h1 className="text-[clamp(4rem,20vw,8rem)] font-thin tracking-tighter leading-none flex items-baseline justify-center">
           {format(currentTime, 'h:mm')}
-          <span className="text-4xl ml-3 opacity-40 font-light">{format(currentTime, 'a')}</span>
+          <span className="text-[clamp(1rem,5vw,2.25rem)] ml-3 opacity-40 font-light">{format(currentTime, 'a')}</span>
         </h1>
-        <p className="text-2xl font-light text-gray-400 mt-6 tracking-wide">
+        <p className="text-[clamp(1rem,4vw,1.5rem)] font-light text-gray-400 mt-6 tracking-wide">
           {format(currentTime, 'EEEE, MMMM do')}
         </p>
       </div>
 
-      {/* Day Progress Visualization */}
-      <div className="w-full mt-10 px-8">
-        <div className="relative h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
-          <div 
-            className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-linear ${timeContext.color.replace('text', 'bg')}`}
-            style={{ width: `${dayProgress}%` }}
-          />
+      {/* Sky Track Visualization */}
+      <div className="w-full mt-20 px-8 relative h-24 flex items-end">
+        {/* Phase Label - Floating above the track */}
+        <div className="absolute -top-8 inset-x-0 flex justify-center">
+           <span className={`text-xs font-black uppercase tracking-[0.4em] animate-fadeIn ${timeContext.color}`}>
+            {timeContext.label}
+          </span>
         </div>
-        <div className="flex justify-between mt-3 px-1">
-          <div className="flex flex-col items-center gap-1">
-            <Sunrise size={14} className="text-gray-600" />
-            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-tighter">6 AM</span>
+
+        {/* The Track (Horizon) */}
+        <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-gray-800 to-transparent relative">
+          {/* Static Full Day Spectrum Background (The Sky) */}
+          <div className="absolute -top-16 inset-x-0 h-16 opacity-20 bg-gradient-to-r from-indigo-950 via-blue-500 via-yellow-200 via-orange-500 to-indigo-950 blur-xl rounded-t-full" />
+        </div>
+        
+        {/* Moving Celestial Body */}
+        <div 
+          className="absolute transition-all duration-1000 ease-linear flex items-center justify-center"
+          style={{ 
+            left: `calc(${dayProgress}% - 24px)`,
+            bottom: `${sunHeight * 4 + 0.5}rem`,
+            width: '48px',
+            height: '48px',
+            zIndex: 10
+          }}
+        >
+          {/* Broad Atmosphere Glow */}
+          <div className={`absolute w-48 h-48 rounded-full opacity-20 blur-3xl ${timeContext.sunColor}`} />
+          
+          {/* Core Glow */}
+          <div className={`absolute w-16 h-16 rounded-full blur-xl ${timeContext.sunColor} ${timeContext.glow}`} />
+          
+          {/* The Body */}
+          <div className={`w-6 h-6 rounded-full ${timeContext.sunColor} shadow-lg relative`}>
+             {/* Moon Craters / Sun Detail */}
+             <div className="absolute inset-0 rounded-full bg-white/20 blur-[1px]" />
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <Sunset size={14} className="text-gray-600" />
-            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-tighter">8 PM</span>
+        </div>
+
+        {/* Legend */}
+        <div className="absolute -bottom-6 inset-x-8 flex justify-between px-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-600">
+          <div className="flex items-center gap-2">
+            <Sunrise size={12} />
+            <span>Dawn</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>Dusk</span>
+            <Sunset size={12} />
           </div>
         </div>
       </div>
 
       {/* Next Up Glance */}
       {nextEvent && (
-        <div className="mt-10 flex items-center gap-3 px-6 py-3 bg-white/5 rounded-2xl border border-white/5 animate-pulse-slow">
+        <div className="mt-16 flex items-center gap-3 px-6 py-3 bg-white/5 rounded-2xl border border-white/5 animate-pulse-slow">
           <Calendar size={18} className="text-gray-500" />
           <p className="text-sm font-medium text-gray-300">
             Next Up: <span className="text-white">{nextEvent.summary}</span>

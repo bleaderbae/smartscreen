@@ -70,33 +70,35 @@ const App: React.FC = () => {
   }, [fetchWeatherData, fetchCalendarData]);
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-black text-white p-6 font-sans select-none overflow-hidden">
-      {/* Top Section: Clock & Date */}
-      <Clock nextEvent={calendarEvents[0]} />
+    <div className="flex flex-col min-h-screen w-screen bg-black text-white p-6 font-sans select-none overflow-x-hidden">
+      <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col">
+        {/* Top Section: Clock & Date */}
+        <Clock nextEvent={calendarEvents[0]} />
 
-      {/* Main Content: Widgets */}
-      <div className="flex-1 grid grid-cols-2 gap-6 overflow-y-auto pb-4 scrollbar-hide">
-        {/* Weather Widget */}
-        <WeatherWidget weather={weather} loading={weatherLoading} error={weatherError} />
+        {/* Main Content: Widgets */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+          {/* Weather Widget */}
+          <WeatherWidget weather={weather} loading={weatherLoading} error={weatherError} />
 
-        {/* Calendar Widget */}
-        <CalendarWidget events={calendarEvents} loading={calendarLoading} />
+          {/* Calendar Widget */}
+          <CalendarWidget events={calendarEvents} loading={calendarLoading} />
 
-        {/* Family Chores Grid */}
-        <ChoreGrid />
+          {/* Family Chores Grid */}
+          <ChoreGrid />
 
-        {/* Shopping List */}
-        <ShoppingListWidget />
+          {/* Shopping List */}
+          <ShoppingListWidget />
 
-        {/* Daily Feed Widget */}
-        <DailyFeedWidget />
-      </div>
+          {/* Daily Feed Widget */}
+          <DailyFeedWidget />
+        </div>
 
-      {/* Bottom Navigation / Apps */}
-      <div className="mt-8 mb-4 bg-gray-900/80 backdrop-blur-md rounded-full p-4 flex justify-around items-center border border-gray-800">
-        <Home className="text-blue-400 active:scale-90 transition-transform cursor-pointer" size={28} />
-        <User className="text-gray-500 active:scale-90 transition-transform cursor-pointer" size={28} />
-        <Settings className="text-gray-500 active:scale-90 transition-transform cursor-pointer" size={28} />
+        {/* Bottom Navigation / Apps */}
+        <div className="mt-8 mb-4 bg-gray-900/80 backdrop-blur-md rounded-full p-4 flex justify-around items-center border border-gray-800">
+          <Home className="text-blue-400 active:scale-90 transition-transform cursor-pointer" size={28} />
+          <User className="text-gray-500 active:scale-90 transition-transform cursor-pointer" size={28} />
+          <Settings className="text-gray-500 active:scale-90 transition-transform cursor-pointer" size={28} />
+        </div>
       </div>
     </div>
   );
