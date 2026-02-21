@@ -10,3 +10,11 @@
 ## 2026-02-12 - Toggle State Accessibility
 **Learning:** Interactive widgets that toggle state (like `ChoreWidget`) must verify `aria-pressed` to communicate the current state to screen readers, in addition to `role="button"`.
 **Action:** Always pair `role="button"` with `aria-pressed={boolean}` for toggleable elements, and ensure `aria-label` describes the action and context, not just the label text.
+
+## 2026-02-13 - Redundant Action Verbs in Toggle Buttons
+**Learning:** When using `role="button"` with `aria-pressed`, adding verbs like \"Toggle\" to the label is redundant and verbose for screen readers (e.g., \"Toggle Milk, toggle button, pressed\").
+**Action:** Use the noun (e.g., item name) as the label, letting the semantic role and state communicate the interaction type and status.
+
+## 2026-02-20 - Morphing Action Button
+**Learning:** Using a single button that rotates (e.g., `rotate-45`) to switch between \"Add\" and \"Cancel\" states reduces clutter and provides a delightful, fluid interaction.
+**Action:** When adding expandable inline forms, reuse the trigger button as the close button with a transform transition instead of adding a separate close icon.

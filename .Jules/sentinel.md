@@ -7,3 +7,8 @@
 **Vulnerability:** Unbounded fetch requests (no timeout, no size limit) could lead to UI freezing or memory exhaustion if the external service hangs or serves a massive file.
 **Learning:** Client-side fetches, especially for user-configurable URLs (like calendars), must have strict resource limits.
 **Prevention:** Configure `axios` or `fetch` with `timeout` (e.g., 10s) and `maxContentLength` (e.g., 5MB) for all external data sources.
+
+## 2025-02-12 - [Insecure Deserialization in LocalStorage]
+**Vulnerability:** Direct `JSON.parse` on untrusted `localStorage` data caused application crashes (DoS) when data was malformed.
+**Learning:** Even client-side storage can be corrupted or tampered with; never trust data from external sources, including `localStorage`.
+**Prevention:** Wrap all `JSON.parse` calls in a safe utility that handles errors and returns a default fallback value.

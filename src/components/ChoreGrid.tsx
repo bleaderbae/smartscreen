@@ -3,6 +3,7 @@ import { ListChecks, CalendarDays, LayoutGrid } from 'lucide-react';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
 import ChoreWidget from './ChoreWidget';
 import { INITIAL_CHORES, getChoresForDate, type Chore } from '../services/choreService';
+import { safeJSONParse } from '../utils/security';
 
 // Extracted to module scope to avoid recreation on every render
 const getCompletionKey = (chore: Chore, date: Date) => {
@@ -32,7 +33,7 @@ const ChoreGrid: React.FC = () => {
   // Persistence logic: track completions with period-specific keys
   const [completions, setCompletions] = useState<Record<string, boolean>>(() => {
     const saved = localStorage.getItem('chore-completions');
-    return saved ? JSON.parse(saved) : {};
+    return safeJSONParse(saved, {});
   });
 
   const [viewMode, setViewAll] = useState(false); // false = Due Today, true = Show All
