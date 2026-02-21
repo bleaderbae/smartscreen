@@ -73,6 +73,6 @@ END:VCALENDAR`
     // with the current implementation because it DOES call axios for everything.
 
     await fetchCalendarEvents(urls);
-    expect(axios.get).toHaveBeenCalledWith(validUrl);
+    expect(axios.get).toHaveBeenCalledWith(validUrl, expect.anything());
   });
 });
