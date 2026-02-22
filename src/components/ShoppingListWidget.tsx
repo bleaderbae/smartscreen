@@ -79,6 +79,10 @@ const ShoppingListWidget: React.FC = () => {
     setItems(prev => prev.filter(item => item.id !== id));
   };
 
+  const clearCompleted = () => {
+    setItems(prev => prev.filter(i => !i.completed));
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -162,56 +166,70 @@ const ShoppingListWidget: React.FC = () => {
       {/* Active List */}
       <div className="space-y-3">
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 px-1">Items</span>
-        <ul className="space-y-2">
-          {items.map((item) => {
-            const Icon = item.icon ? ICON_MAP[item.icon] : null;
-            return (
-              <li 
-                key={item.id}
-                className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all border border-transparent active:border-white/10 group"
-              >
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => toggleItem(item.id)}
-                  onKeyDown={(e) => handleKeyDown(e, item.id)}
-                  aria-label={item.text}
-                  aria-pressed={item.completed}
-                  className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
+
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-400 animate-fadeIn">
+            <ShoppingCart size={48} className="mb-4 text-gray-500" />
+            <p className="text-lg font-light">Your list is empty</p>
+            <p className="text-xs uppercase tracking-widest mt-2">Add items above</p>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {items.map((item) => {
+              const Icon = item.icon ? ICON_MAP[item.icon] : null;
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all border border-transparent active:border-white/10 group"
                 >
-                  <div className="relative">
-                    {item.completed ? (
-                      <CheckCircle2 className="text-green-400 shrink-0" size={28} />
-                    ) : (
-                      <Circle className="text-gray-600 shrink-0" size={28} />
-                    )}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleItem(item.id)}
+                    onKeyDown={(e) => handleKeyDown(e, item.id)}
+                    aria-label={item.text}
+                    aria-pressed={item.completed}
+                    className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
+                  >
+                    <div className="relative">
+                      {item.completed ? (
+                        <CheckCircle2 className="text-green-400 shrink-0" size={28} />
+                      ) : (
+                        <Circle className="text-gray-600 shrink-0" size={28} />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {Icon && <Icon size={20} className={`text-${item.color}-400/60`} />}
+                      <span className={`text-xl font-light transition-all ${
+                        item.completed ? 'line-through text-gray-500 italic' : 'text-gray-100'
+                      }`}>
+                        {item.text}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {Icon && <Icon size={20} className={`text-${item.color}-400/60`} />}
-                    <span className={`text-xl font-light transition-all ${
-                      item.completed ? 'line-through text-gray-500 italic' : 'text-gray-100'
-                    }`}>
-                      {item.text}
-                    </span>
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={(e) => removeItem(e, item.id)}
-                  className="p-2 text-gray-600 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
-                  aria-label={`Remove ${item.text}`}
-                >
-                  <Trash2 size={18} />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+
+                  <button
+                    onClick={(e) => removeItem(e, item.id)}
+                    className="p-2 text-gray-600 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
+                    aria-label={`Remove ${item.text}`}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
 
-      <button className="w-full py-4 text-sm text-blue-400 font-medium bg-white/5 rounded-2xl active:scale-[0.98] transition-transform border border-white/5">
-        View Full List
-      </button>
+      {items.some(i => i.completed) && (
+        <button
+          onClick={clearCompleted}
+          className="w-full py-4 text-sm text-red-400 font-medium bg-white/5 rounded-2xl active:scale-[0.98] transition-transform border border-white/5 hover:bg-red-500/10 focus-visible:ring-2 focus-visible:ring-red-400 outline-none"
+        >
+          Clear Completed
+        </button>
+      )}
     </div>
   );
 };

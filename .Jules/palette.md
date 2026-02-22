@@ -18,3 +18,7 @@
 ## 2026-02-20 - Morphing Action Button
 **Learning:** Using a single button that rotates (e.g., `rotate-45`) to switch between \"Add\" and \"Cancel\" states reduces clutter and provides a delightful, fluid interaction.
 **Action:** When adding expandable inline forms, reuse the trigger button as the close button with a transform transition instead of adding a separate close icon.
+
+## 2026-02-21 - Actionable Empty States
+**Learning:** Static "View All" buttons that do nothing frustrate users, while empty lists without guidance feel broken.
+**Action:** Replace dead buttons with context-aware actions (e.g., "Clear Completed") and use illustrative empty states to guide users (e.g., "Your list is empty, add items above").
