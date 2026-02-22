@@ -38,6 +38,8 @@ export interface Chore {
 }
 
 const RECYCLING_REFERENCE_DATE = '2026-02-09'; // A Monday with recycling
+// Optimize: Pre-parse the reference date once at module level
+const RECYCLING_START_DATE = startOfDay(parseISO(RECYCLING_REFERENCE_DATE));
 
 export const INITIAL_CHORES: Chore[] = [
   // DAILY
@@ -63,6 +65,10 @@ export const INITIAL_CHORES: Chore[] = [
 ];
 
 export const getChoresForDate = (chores: Chore[], date: Date): Chore[] => {
+  // Optimize: Calculate date-derived values once outside the loop
+  const dayOfWeek = date.getDay();
+  const startOfCurrentDate = startOfDay(date);
+
   return chores.filter(chore => {
     if (chore.frequency === 'daily') return true;
     if (chore.frequency === 'monthly') return true; // For now, show monthly tasks all month
@@ -71,12 +77,12 @@ export const getChoresForDate = (chores: Chore[], date: Date): Chore[] => {
     if (chore.frequency === 'weekly') {
       // If a specific day is required
       if (chore.dayOfWeek !== undefined) {
-        const isCorrectDay = date.getDay() === chore.dayOfWeek;
+        const isCorrectDay = dayOfWeek === chore.dayOfWeek;
         
         if (chore.isBiweekly) {
           const weeks = differenceInCalendarWeeks(
-            startOfDay(date), 
-            startOfDay(parseISO(RECYCLING_REFERENCE_DATE))
+            startOfCurrentDate,
+            RECYCLING_START_DATE
           );
           return isCorrectDay && (weeks % 2 === 0);
         }
