@@ -127,4 +127,59 @@ describe('ShoppingListWidget', () => {
     // If it renders, check for default items (Milk)
     expect(screen.getAllByText('Milk').length).toBeGreaterThan(0);
   });
+
+  it('shows clear completed button only when there are completed items', () => {
+    render(<ShoppingListWidget />);
+
+    // Initially no items are completed (based on default state in test)
+    // Actually, default state has completed: false for all items.
+    expect(screen.queryByRole('button', { name: /Clear Completed/i })).not.toBeInTheDocument();
+
+    // Toggle an item to complete
+    const milkButton = screen.getByRole('button', { name: /^Milk$/i });
+    fireEvent.click(milkButton);
+
+    // Now the button should appear
+    expect(screen.getByRole('button', { name: /Clear Completed/i })).toBeInTheDocument();
+
+    // Toggle back to incomplete
+    fireEvent.click(milkButton);
+
+    // Button should disappear
+    expect(screen.queryByRole('button', { name: /Clear Completed/i })).not.toBeInTheDocument();
+  });
+
+  it('clears completed items when button is clicked', () => {
+    render(<ShoppingListWidget />);
+
+    // Complete Milk
+    const milkButton = screen.getByRole('button', { name: /^Milk$/i });
+    fireEvent.click(milkButton);
+
+    // Click Clear Completed
+    const clearButton = screen.getByRole('button', { name: /Clear Completed/i });
+    fireEvent.click(clearButton);
+
+    // Milk should be gone
+    expect(screen.queryByRole('button', { name: /^Milk$/i })).not.toBeInTheDocument();
+
+    // Avocados (incomplete) should still be there
+    expect(screen.getByRole('button', { name: /^Avocados$/i })).toBeInTheDocument();
+  });
+
+  it('shows empty state when all items are removed', () => {
+    render(<ShoppingListWidget />);
+
+    // Remove all items one by one
+    // Note: Default items are Milk, Avocados, Whole Grain Bread
+    const removeButtons = screen.getAllByRole('button', { name: /Remove/i });
+    removeButtons.forEach(btn => fireEvent.click(btn));
+
+    // List should be empty
+    expect(screen.queryByRole('button', { name: /^Milk$/i })).not.toBeInTheDocument();
+
+    // Empty state should be visible
+    expect(screen.getByText(/Your list is empty/i)).toBeInTheDocument();
+    expect(screen.getByText(/Add items above/i)).toBeInTheDocument();
+  });
 });
