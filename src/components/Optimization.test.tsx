@@ -1,4 +1,3 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import { vi, it, expect, describe } from 'vitest';
 import WeatherWidget from './WeatherWidget';

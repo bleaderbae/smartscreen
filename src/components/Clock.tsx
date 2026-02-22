@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
-import { Sunrise, Sun, Sunset, Moon, Calendar } from 'lucide-react';
+import { Sunrise, Sunset, Calendar } from 'lucide-react';
 import type { CalendarEvent } from '../services/calendarService';
 import { FAMILY_PROFILES } from '../config';
 
@@ -43,7 +43,6 @@ const Clock: React.FC<ClockProps> = ({ nextEvent }) => {
   const timeContext = useMemo(() => {
     if (hour >= 5 && hour < 9) {
       return { 
-        icon: <Sunrise size={48} className="text-orange-300" />, 
         label: 'Good Morning', 
         color: 'text-orange-300',
         sunColor: 'bg-orange-400',
@@ -52,7 +51,6 @@ const Clock: React.FC<ClockProps> = ({ nextEvent }) => {
     }
     if (hour >= 9 && hour < 17) {
       return { 
-        icon: <Sun size={48} className="text-yellow-400" />, 
         label: 'Day Time', 
         color: 'text-yellow-400',
         sunColor: 'bg-yellow-100',
@@ -61,7 +59,6 @@ const Clock: React.FC<ClockProps> = ({ nextEvent }) => {
     }
     if (hour >= 17 && hour < 20) {
       return { 
-        icon: <Sunset size={48} className="text-orange-500" />, 
         label: 'Dusk', 
         color: 'text-orange-500',
         sunColor: 'bg-orange-500',
@@ -69,7 +66,6 @@ const Clock: React.FC<ClockProps> = ({ nextEvent }) => {
       };
     }
     return { 
-      icon: <Moon size={48} className="text-blue-200" />, 
       label: 'Quiet Time', 
       color: 'text-blue-200',
       sunColor: 'bg-blue-50',

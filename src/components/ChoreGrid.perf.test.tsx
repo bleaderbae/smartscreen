@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import { vi, it, expect, describe, beforeEach } from 'vitest';
 import ChoreGrid from './ChoreGrid';
