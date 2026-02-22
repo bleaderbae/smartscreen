@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import axios from 'axios';
 import { getNASAData, getDogData } from './dailyFeedService';
+
+vi.mock('axios');
 
 describe('dailyFeedService', () => {
   beforeEach(() => {
@@ -16,10 +19,9 @@ describe('dailyFeedService', () => {
         media_type: 'image'
       };
 
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => mockResponse,
-      } as Response);
+      (axios.get as any).mockResolvedValue({
+        data: mockResponse,
+      });
 
       const result = await getNASAData();
       expect(result).toEqual({
@@ -34,40 +36,36 @@ describe('dailyFeedService', () => {
     });
 
     it('returns fallback data on failure', async () => {
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        statusText: 'Internal Server Error'
-      } as Response);
+      (axios.get as any).mockRejectedValue(new Error('Internal Server Error'));
 
       const result = await getNASAData();
       expect(result.id).toBe('nasa-fallback');
     });
 
-    it('calls fetch with correct URL including API key', async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({})
+    it('calls axios with correct URL including API key', async () => {
+      (axios.get as any).mockResolvedValue({
+        data: {}
       });
-      globalThis.fetch = mockFetch;
 
       await getNASAData();
 
       // Verifies that the URL is constructed with the fallback or environment variable
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('api_key=DEMO_KEY'));
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.stringContaining('api_key=DEMO_KEY'),
+        expect.anything()
+      );
     });
   });
 
   describe('getDogData', () => {
     it('returns combined Dog data on success', async () => {
-      globalThis.fetch = vi.fn()
+      (axios.get as any)
         .mockResolvedValueOnce({ // Dog Image
-          ok: true,
-          json: async () => ({ message: 'http://dog.com/dog.jpg', status: 'success' })
-        } as Response)
+          data: { message: 'http://dog.com/dog.jpg', status: 'success' }
+        })
         .mockResolvedValueOnce({ // Dog Fact
-          ok: true,
-          json: async () => ({ data: [{ attributes: { body: 'Dogs bark.' } }] })
-        } as Response);
+          data: { data: [{ attributes: { body: 'Dogs bark.' } }] }
+        });
 
       const result = await getDogData();
       expect(result).toEqual({
@@ -81,7 +79,7 @@ describe('dailyFeedService', () => {
     });
 
     it('returns fallback data on failure', async () => {
-      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+      (axios.get as any).mockRejectedValue(new Error('Network error'));
 
       const result = await getDogData();
       expect(result.id).toBe('dog-fallback');

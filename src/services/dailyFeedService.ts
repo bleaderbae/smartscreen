@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export interface FeedItem {
   id: string;
   type: 'nasa' | 'dog';
@@ -14,13 +16,19 @@ const NASA_APOD_URL = `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KE
 const DOG_IMAGE_URL = 'https://dog.ceo/api/breeds/image/random';
 const DOG_FACT_URL = 'https://dogapi.dog/api/v2/facts';
 
+// Shared Axios config for consistency
+const AXIOS_CONFIG = {
+  timeout: 10000, // 10 seconds
+  maxContentLength: 5 * 1024 * 1024, // 5MB
+  headers: {
+    'Accept': 'application/json'
+  }
+};
+
 export const getNASAData = async (): Promise<FeedItem> => {
   try {
-    const response = await fetch(NASA_APOD_URL);
-    if (!response.ok) {
-      throw new Error(`NASA API error: ${response.statusText}`);
-    }
-    const data = await response.json();
+    const response = await axios.get(NASA_APOD_URL, AXIOS_CONFIG);
+    const data = response.data;
 
     // Handle video case: use thumbnail if available, otherwise fallback or use url if it's an image
     let imageUrl = data.url;
@@ -41,7 +49,13 @@ export const getNASAData = async (): Promise<FeedItem> => {
       thumbnailUrl: data.thumbnail_url
     };
   } catch (error) {
-    console.error('Error fetching NASA data:', error);
+    // Log only the error message to avoid leaking the API key in the URL (which might be in the full error object)
+    if (axios.isAxiosError(error)) {
+      console.error(`Error fetching NASA data: ${error.message}`);
+    } else {
+      console.error('Error fetching NASA data:', error);
+    }
+
     // Return fallback or rethrow. For UI, returning a safe fallback is better.
     return {
       id: 'nasa-fallback',
@@ -58,16 +72,12 @@ export const getDogData = async (): Promise<FeedItem> => {
   try {
     // Fetch image and fact in parallel
     const [imageRes, factRes] = await Promise.all([
-      fetch(DOG_IMAGE_URL),
-      fetch(DOG_FACT_URL)
+      axios.get(DOG_IMAGE_URL, AXIOS_CONFIG),
+      axios.get(DOG_FACT_URL, AXIOS_CONFIG)
     ]);
 
-    if (!imageRes.ok || !factRes.ok) {
-      throw new Error('Failed to fetch dog data');
-    }
-
-    const imageData = await imageRes.json();
-    const factData = await factRes.json();
+    const imageData = imageRes.data;
+    const factData = factRes.data;
 
     const imageUrl = imageData.message;
     const factText = factData.data?.[0]?.attributes?.body || 'Dogs are amazing companions!';
@@ -81,7 +91,13 @@ export const getDogData = async (): Promise<FeedItem> => {
       mediaType: 'image'
     };
   } catch (error) {
-    console.error('Error fetching Dog data:', error);
+    // Log only the error message to avoid leaking potentially sensitive details (though dog APIs are public)
+    if (axios.isAxiosError(error)) {
+      console.error(`Error fetching Dog data: ${error.message}`);
+    } else {
+      console.error('Error fetching Dog data:', error);
+    }
+
     return {
       id: 'dog-fallback',
       type: 'dog',
