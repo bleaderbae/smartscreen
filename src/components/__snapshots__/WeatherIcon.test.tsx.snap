@@ -1,0 +1,269 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`WeatherIcon > renders correctly for type: Clear 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-sun text-yellow-400"
+  fill="none"
+  height="48"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <circle
+    cx="12"
+    cy="12"
+    r="4"
+  />
+  <path
+    d="M12 2v2"
+  />
+  <path
+    d="M12 20v2"
+  />
+  <path
+    d="m4.93 4.93 1.41 1.41"
+  />
+  <path
+    d="m17.66 17.66 1.41 1.41"
+  />
+  <path
+    d="M2 12h2"
+  />
+  <path
+    d="M20 12h2"
+  />
+  <path
+    d="m6.34 17.66-1.41 1.41"
+  />
+  <path
+    d="m19.07 4.93-1.41 1.41"
+  />
+</svg>
+`;
+
+exports[`WeatherIcon > renders correctly for type: Cloudy 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-cloud text-gray-400"
+  fill="none"
+  height="48"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"
+  />
+</svg>
+`;
+
+exports[`WeatherIcon > renders correctly for type: Fog 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-cloud-fog text-gray-400"
+  fill="none"
+  height="48"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"
+  />
+  <path
+    d="M16 17H7"
+  />
+  <path
+    d="M17 21H9"
+  />
+</svg>
+`;
+
+exports[`WeatherIcon > renders correctly for type: PartlyCloudy 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-cloud text-blue-400"
+  fill="none"
+  height="48"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"
+  />
+</svg>
+`;
+
+exports[`WeatherIcon > renders correctly for type: Rain 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-cloud-rain text-blue-500"
+  fill="none"
+  height="48"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"
+  />
+  <path
+    d="M16 14v6"
+  />
+  <path
+    d="M8 14v6"
+  />
+  <path
+    d="M12 16v6"
+  />
+</svg>
+`;
+
+exports[`WeatherIcon > renders correctly for type: Snow 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-cloud-snow text-white"
+  fill="none"
+  height="48"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"
+  />
+  <path
+    d="M8 15h.01"
+  />
+  <path
+    d="M8 19h.01"
+  />
+  <path
+    d="M12 17h.01"
+  />
+  <path
+    d="M12 21h.01"
+  />
+  <path
+    d="M16 15h.01"
+  />
+  <path
+    d="M16 19h.01"
+  />
+</svg>
+`;
+
+exports[`WeatherIcon > renders correctly for type: Thunderstorm 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-cloud-lightning text-yellow-600"
+  fill="none"
+  height="48"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"
+  />
+  <path
+    d="m13 12-3 5h4l-3 5"
+  />
+</svg>
+`;
+
+exports[`WeatherIcon > renders correctly for type: Unknown 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-cloud text-blue-400"
+  fill="none"
+  height="48"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"
+  />
+</svg>
+`;
+
+exports[`WeatherIcon > renders correctly with custom size and className 1`] = `
+<svg
+  aria-hidden="true"
+  class="lucide lucide-sun text-yellow-400 custom-class"
+  fill="none"
+  height="64"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  width="64"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <circle
+    cx="12"
+    cy="12"
+    r="4"
+  />
+  <path
+    d="M12 2v2"
+  />
+  <path
+    d="M12 20v2"
+  />
+  <path
+    d="m4.93 4.93 1.41 1.41"
+  />
+  <path
+    d="m17.66 17.66 1.41 1.41"
+  />
+  <path
+    d="M2 12h2"
+  />
+  <path
+    d="M20 12h2"
+  />
+  <path
+    d="m6.34 17.66-1.41 1.41"
+  />
+  <path
+    d="m19.07 4.93-1.41 1.41"
+  />
+</svg>
+`;
