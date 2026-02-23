@@ -182,4 +182,14 @@ describe('ShoppingListWidget', () => {
     expect(screen.getByText(/Your list is empty/i)).toBeInTheDocument();
     expect(screen.getByText(/Add items above/i)).toBeInTheDocument();
   });
+
+  it('handles localStorage containing valid JSON but invalid schema (not an array)', () => {
+    localStorage.setItem('shopping-list', '{"foo": "bar"}');
+
+    // This should NOT crash now
+    render(<ShoppingListWidget />);
+
+    // Check if default items are rendered (fallback logic)
+    expect(screen.getAllByText('Milk').length).toBeGreaterThan(0);
+  });
 });

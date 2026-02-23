@@ -44,11 +44,17 @@ const ShoppingListWidget: React.FC = () => {
 
   const [items, setItems] = useState<ShoppingItem[]>(() => {
     const saved = localStorage.getItem('shopping-list');
-    return safeJSONParse(saved, [
+    const parsed = safeJSONParse<unknown>(saved, null);
+
+    if (Array.isArray(parsed)) {
+      return parsed as ShoppingItem[];
+    }
+
+    return [
       { id: '1', text: 'Milk', completed: false, icon: 'Milk', color: 'blue' },
       { id: '2', text: 'Avocados', completed: false },
       { id: '3', text: 'Whole Grain Bread', completed: false },
-    ]);
+    ];
   });
 
   useEffect(() => {
