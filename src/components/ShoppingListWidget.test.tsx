@@ -17,7 +17,8 @@ describe('ShoppingListWidget', () => {
   it('renders quick add menu', () => {
     render(<ShoppingListWidget />);
     expect(screen.getByText(/Quick Add/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Quick add Milk/i })).toBeInTheDocument();
+    // Milk is in default list, so it will be "Milk (Added)"
+    expect(screen.getByRole('button', { name: /Milk \(Added\)/i })).toBeInTheDocument();
   });
 
   it('toggles item completion state on click', () => {
@@ -52,8 +53,14 @@ describe('ShoppingListWidget', () => {
   it('prevents duplicate active items from quick add', () => {
     render(<ShoppingListWidget />);
     
-    // Milk is already there. Clicking quick add should not add another.
-    const milkQuickAdd = screen.getByRole('button', { name: /Quick add Milk/i });
+    // Milk is already in the list (default state).
+    // The Quick Add button should be disabled and have updated label.
+    const milkQuickAdd = screen.getByRole('button', { name: /Milk \(Added\)/i });
+
+    expect(milkQuickAdd).toBeInTheDocument();
+    expect(milkQuickAdd).toBeDisabled();
+
+    // Clicking it should not do anything
     fireEvent.click(milkQuickAdd);
 
     const milkListItems = screen.getAllByRole('button', { name: /^Milk$/i });

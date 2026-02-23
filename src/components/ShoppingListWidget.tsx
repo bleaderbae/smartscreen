@@ -153,19 +153,29 @@ const ShoppingListWidget: React.FC = () => {
       <div className="space-y-3">
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 px-1">Quick Add</span>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {QUICK_ADD_ITEMS.map((preset) => (
-            <button
-              key={preset.text}
-              onClick={() => addItem(preset.text, preset.iconName, preset.color)}
-              aria-label={`Quick add ${preset.text}`}
-              className="flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform"
-            >
-              <div className={`p-4 rounded-2xl bg-${preset.color}-500/10 border border-${preset.color}-500/20 group-active:bg-${preset.color}-500/20`}>
-                <preset.icon className={`text-${preset.color}-400`} size={32} />
-              </div>
-              <span className="text-xs font-medium text-gray-400">{preset.text}</span>
-            </button>
-          ))}
+          {QUICK_ADD_ITEMS.map((preset) => {
+            const isActive = items.some(i => i.text.toLowerCase() === preset.text.toLowerCase() && !i.completed);
+
+            return (
+              <button
+                key={preset.text}
+                onClick={() => addItem(preset.text, preset.iconName, preset.color)}
+                disabled={isActive}
+                aria-label={isActive ? `${preset.text} (Added)` : `Quick add ${preset.text}`}
+                className={`flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform ${isActive ? 'opacity-50 cursor-default' : ''}`}
+              >
+                <div className={`relative p-4 rounded-2xl bg-${preset.color}-500/10 border border-${preset.color}-500/20 group-active:bg-${preset.color}-500/20`}>
+                  <preset.icon className={`text-${preset.color}-400`} size={32} />
+                  {isActive && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl">
+                      <CheckCircle2 className="text-green-400" size={24} />
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-medium text-gray-400">{preset.text}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

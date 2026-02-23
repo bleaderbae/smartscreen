@@ -22,3 +22,7 @@
 ## 2026-02-21 - Actionable Empty States
 **Learning:** Static "View All" buttons that do nothing frustrate users, while empty lists without guidance feel broken.
 **Action:** Replace dead buttons with context-aware actions (e.g., "Clear Completed") and use illustrative empty states to guide users (e.g., "Your list is empty, add items above").
+
+## 2026-02-22 - Preventative State Feedback
+**Learning:** In "Quick Add" lists, users often don't know if an item is already added, leading to confusion or duplicate attempts.
+**Action:** Visually disable and mark "active" items in selection lists (e.g., opacity-50, checkmark overlay) to prevent errors and provide immediate status feedback.
