@@ -69,6 +69,12 @@ export const getChoresForDate = (chores: Chore[], date: Date): Chore[] => {
   const dayOfWeek = date.getDay();
   const startOfCurrentDate = startOfDay(date);
 
+  // Calculate this once for all biweekly chores
+  const weeksSinceReference = differenceInCalendarWeeks(
+    startOfCurrentDate,
+    RECYCLING_START_DATE
+  );
+
   return chores.filter(chore => {
     if (chore.frequency === 'daily') return true;
     if (chore.frequency === 'monthly') return true; // For now, show monthly tasks all month
@@ -80,11 +86,7 @@ export const getChoresForDate = (chores: Chore[], date: Date): Chore[] => {
         const isCorrectDay = dayOfWeek === chore.dayOfWeek;
         
         if (chore.isBiweekly) {
-          const weeks = differenceInCalendarWeeks(
-            startOfCurrentDate,
-            RECYCLING_START_DATE
-          );
-          return isCorrectDay && (weeks % 2 === 0);
+          return isCorrectDay && (weeksSinceReference % 2 === 0);
         }
         
         return isCorrectDay;
