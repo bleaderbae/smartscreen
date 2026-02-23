@@ -61,7 +61,11 @@ export const fetchCalendarEvents = async (urls: Record<string, string>): Promise
       }, []);
 
     } catch (error) {
-      console.error(`Failed to fetch calendar: ${name}`, error);
+      if (axios.isAxiosError(error)) {
+        console.error(`Failed to fetch calendar: ${name}`, error.message);
+      } else {
+        console.error(`Failed to fetch calendar: ${name}`, error);
+      }
       return [];
     }
   });
