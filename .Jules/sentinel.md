@@ -12,3 +12,8 @@
 **Vulnerability:** Direct `JSON.parse` on untrusted `localStorage` data caused application crashes (DoS) when data was malformed.
 **Learning:** Even client-side storage can be corrupted or tampered with; never trust data from external sources, including `localStorage`.
 **Prevention:** Wrap all `JSON.parse` calls in a safe utility that handles errors and returns a default fallback value.
+
+## 2025-02-21 - [Vitest Mock Stacking]
+**Vulnerability:** N/A (Testing Challenge)
+**Learning:** `vi.clearAllMocks()` does not clear return values set by `mockResolvedValueOnce`, causing tests to consume leftover mocks from previous tests if they share the same mock implementation.
+**Prevention:** Use `vi.resetAllMocks()` in `beforeEach` when tests rely on sequential `mockResolvedValueOnce` calls on a shared mock.
