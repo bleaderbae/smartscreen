@@ -26,3 +26,7 @@
 ## 2026-02-22 - Preventative State Feedback
 **Learning:** In "Quick Add" lists, users often don't know if an item is already added, leading to confusion or duplicate attempts.
 **Action:** Visually disable and mark "active" items in selection lists (e.g., opacity-50, checkmark overlay) to prevent errors and provide immediate status feedback.
+
+## 2026-02-24 - False Affordances in Cards
+**Learning:** Widgets that use `role="button"` and pointer cursors but lack actual interactivity confuse users (especially screen reader users) who expect an action.
+**Action:** Always implement a meaningful action (like expanding for details) for card-like widgets that appear interactive, or remove the interactive semantics if it's purely display.
