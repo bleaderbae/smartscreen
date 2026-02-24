@@ -5,3 +5,7 @@
 ## 2026-02-16 - [Loop-Invariant Code Motion]
 **Learning:** Performing invariant calculations (like `differenceInCalendarWeeks` for a fixed date) inside a filter loop recalculates the same value needlessly for every item.
 **Action:** Hoist constant calculations outside the loop to reduce CPU cycles, especially in frequent operations like list filtering.
+
+## 2026-02-16 - [Optimizing Render Loops with Pre-Calculated Keys]
+**Learning:** Calling `date-fns` formatting functions (like `format`, `startOfWeek`) inside a render loop (e.g., `map`) for every item creates significant overhead (20x slowdown in benchmarks) when the date is constant.
+**Action:** Pre-calculate date strings/keys once per render (or memoize them) and pass them into the loop or helper functions.

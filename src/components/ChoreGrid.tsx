@@ -5,21 +5,6 @@ import ChoreWidget from './ChoreWidget';
 import { INITIAL_CHORES, getChoresForDate, type Chore } from '../services/choreService';
 import { safeJSONParse } from '../utils/security';
 
-// Extracted to module scope to avoid recreation on every render
-const getCompletionKey = (chore: Chore, date: Date) => {
-  if (chore.frequency === 'daily') {
-    return `daily-${chore.id}-${format(date, 'yyyy-MM-dd')}`;
-  }
-  if (chore.frequency === 'weekly') {
-    // Use the start of the week as the key suffix
-    return `weekly-${chore.id}-${format(startOfWeek(date), 'yyyy-MM-dd')}`;
-  }
-  if (chore.frequency === 'monthly') {
-    return `monthly-${chore.id}-${format(startOfMonth(date), 'yyyy-MM')}`;
-  }
-  return `${chore.id}`;
-};
-
 // Extracted to module scope
 const SECTIONS = [
   { id: 'daily', label: 'Daily', icon: LayoutGrid, color: 'text-orange-400' },
@@ -42,29 +27,46 @@ const ChoreGrid: React.FC = () => {
     localStorage.setItem('chore-completions', JSON.stringify(completions));
   }, [completions]);
 
-  const choresWithCompletion = useMemo(() => {
-    return INITIAL_CHORES.map(chore => ({
-      ...chore,
-      completed: !!completions[getCompletionKey(chore, today)]
-    }));
-  }, [completions, today]);
+  // Optimize: Pre-calculate date keys once per render cycle (dependent on 'today')
+  // This avoids recalculating format() and startOfWeek() for every chore in the loop
+  const dateKeys = useMemo(() => ({
+    daily: format(today, 'yyyy-MM-dd'),
+    weekly: format(startOfWeek(today), 'yyyy-MM-dd'),
+    monthly: format(startOfMonth(today), 'yyyy-MM')
+  }), [today]);
+
+  const getKey = useCallback((chore: Chore) => {
+    if (chore.frequency === 'daily') return `daily-${chore.id}-${dateKeys.daily}`;
+    if (chore.frequency === 'weekly') return `weekly-${chore.id}-${dateKeys.weekly}`;
+    if (chore.frequency === 'monthly') return `monthly-${chore.id}-${dateKeys.monthly}`;
+    return chore.id;
+  }, [dateKeys]);
+
+  // Optimize: Filter chores by date FIRST, then apply completion status.
+  // This avoids re-running expensive date logic (getChoresForDate) when user simply toggles a checkbox.
+  const relevantChores = useMemo(() => {
+    if (viewMode) return INITIAL_CHORES;
+    return getChoresForDate(INITIAL_CHORES, today);
+  }, [today, viewMode]);
 
   const displayedChores = useMemo(() => {
-    if (viewMode) return choresWithCompletion;
-    return getChoresForDate(choresWithCompletion, today);
-  }, [choresWithCompletion, today, viewMode]);
+    return relevantChores.map(chore => ({
+      ...chore,
+      completed: !!completions[getKey(chore)]
+    }));
+  }, [relevantChores, completions, getKey]);
 
   // Memoize the callback to ensure stable reference for React.memo
   const toggleChore = useCallback((id: string) => {
     const chore = INITIAL_CHORES.find(c => c.id === id);
     if (!chore) return;
 
-    const key = getCompletionKey(chore, today);
+    const key = getKey(chore);
     setCompletions(prev => ({
       ...prev,
       [key]: !prev[key]
     }));
-  }, [today]);
+  }, [getKey]);
 
   return (
     <div className="col-span-2 space-y-6">
