@@ -1,16 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import axios from 'axios';
 import { getWeather } from './weatherService';
+
+vi.mock('axios', () => {
+  return {
+    default: {
+      get: vi.fn(),
+      isAxiosError: (payload: any) => payload?.isAxiosError === true,
+    },
+  };
+});
 
 describe('getWeather Security', () => {
 
   beforeEach(() => {
-    // Cross-compatible way to mock fetch for both Vitest and Bun
-    if (typeof vi.stubGlobal === 'function') {
-      vi.stubGlobal('fetch', vi.fn());
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      globalThis.fetch = vi.fn() as any;
-    }
+    vi.resetAllMocks();
   });
 
   afterEach(() => {
@@ -22,19 +26,17 @@ describe('getWeather Security', () => {
     const long = -74.0001;
     const maliciousUrl = 'http://api.weather.gov/gridpoints/OKX/33,35/forecast';
 
-    (fetch as Mock)
+    (axios.get as Mock)
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+        data: {
           properties: {
             forecast: maliciousUrl,
           },
-        }),
-      } as Response)
+        },
+      })
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ properties: { periods: [] } }),
-      } as Response);
+        data: { properties: { periods: [] } },
+      });
 
     await expect(getWeather(lat, long)).rejects.toThrow(/Invalid forecast URL/);
   });
@@ -44,19 +46,17 @@ describe('getWeather Security', () => {
     const long = -74.0002;
     const maliciousUrl = 'https://malicious.com/forecast';
 
-    (fetch as Mock)
+    (axios.get as Mock)
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+        data: {
           properties: {
             forecast: maliciousUrl,
           },
-        }),
-      } as Response)
+        },
+      })
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ properties: { periods: [] } }),
-      } as Response);
+        data: { properties: { periods: [] } },
+      });
 
     await expect(getWeather(lat, long)).rejects.toThrow(/Invalid forecast URL/);
   });
@@ -66,19 +66,17 @@ describe('getWeather Security', () => {
       const long = -74.0003;
       const maliciousUrl = 'https://weather.gov.malicious.com/forecast';
 
-      (fetch as Mock)
+      (axios.get as Mock)
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+        data: {
           properties: {
             forecast: maliciousUrl,
           },
-        }),
-      } as Response)
+        },
+      })
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ properties: { periods: [] } }),
-      } as Response);
+        data: { properties: { periods: [] } },
+      });
 
       await expect(getWeather(lat, long)).rejects.toThrow(/Invalid forecast URL/);
   });

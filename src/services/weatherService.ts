@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export interface WeatherData {
   temperature: number;
   shortForecast: string;
@@ -63,6 +65,14 @@ export function getWeatherIconFromUrl(iconUrl: string): WeatherData['weatherIcon
 const pointsCache = new Map<string, string>();
 const MAX_CACHE_SIZE = 100;
 
+const AXIOS_CONFIG = {
+  timeout: 10000, // 10 seconds
+  maxContentLength: 5 * 1024 * 1024, // 5MB
+  headers: {
+    'User-Agent': '(myweatherapp.com, contact@myweatherapp.com)'
+  }
+};
+
 export async function getWeather(lat: number, long: number): Promise<WeatherData> {
   // Input validation: ensure coordinates are numbers and within valid ranges
   if (typeof lat !== 'number' || !Number.isFinite(lat) || lat < -90 || lat > 90) {
@@ -72,29 +82,30 @@ export async function getWeather(lat: number, long: number): Promise<WeatherData
     throw new Error('Invalid longitude: must be a number between -180 and 180');
   }
 
-  const userAgent = '(myweatherapp.com, contact@myweatherapp.com)';
-
   try {
     const cacheKey = `${lat},${long}`;
     let forecastUrl = pointsCache.get(cacheKey);
 
     if (!forecastUrl) {
       // 1. Get grid point
-      const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${long}`, {
-        headers: { 'User-Agent': userAgent }
-      });
+      try {
+        const pointsResponse = await axios.get<GridPointResponse>(
+          `https://api.weather.gov/points/${lat},${long}`,
+          AXIOS_CONFIG
+        );
+        const pointsData = pointsResponse.data;
+        forecastUrl = pointsData.properties.forecast;
 
-      if (!pointsResponse.ok) {
-        throw new Error(`Failed to fetch points: ${pointsResponse.statusText}`);
+        if (pointsCache.size >= MAX_CACHE_SIZE) {
+          pointsCache.clear();
+        }
+        pointsCache.set(cacheKey, forecastUrl);
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+          throw new Error(`Failed to fetch points: ${error.response.statusText}`);
+        }
+        throw error;
       }
-
-      const pointsData = (await pointsResponse.json()) as GridPointResponse;
-      forecastUrl = pointsData.properties.forecast;
-
-      if (pointsCache.size >= MAX_CACHE_SIZE) {
-        pointsCache.clear();
-      }
-      pointsCache.set(cacheKey, forecastUrl);
     }
 
     // 2. Get forecast
@@ -103,18 +114,25 @@ export async function getWeather(lat: number, long: number): Promise<WeatherData
       throw new Error('Invalid forecast URL');
     }
 
-    const forecastResponse = await fetch(forecastUrl, {
-      headers: { 'User-Agent': userAgent }
-    });
-
-    if (!forecastResponse.ok) {
-      if (forecastResponse.status === 404) {
-        pointsCache.delete(cacheKey);
+    let forecastData: ForecastResponse;
+    try {
+      const forecastResponse = await axios.get<ForecastResponse>(
+        forecastUrl,
+        AXIOS_CONFIG
+      );
+      forecastData = forecastResponse.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          pointsCache.delete(cacheKey);
+        }
+        if (error.response) {
+           throw new Error(`Failed to fetch forecast: ${error.response.statusText}`);
+        }
       }
-      throw new Error(`Failed to fetch forecast: ${forecastResponse.statusText}`);
+      throw error;
     }
 
-    const forecastData = (await forecastResponse.json()) as ForecastResponse;
     const periods = forecastData.properties.periods;
 
     if (!periods || periods.length === 0) {

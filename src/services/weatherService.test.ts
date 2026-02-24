@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import axios from 'axios';
 import { getWeather, getWeatherIconFromUrl } from './weatherService';
+
+vi.mock('axios', () => {
+  return {
+    default: {
+      get: vi.fn(),
+      isAxiosError: (payload: any) => payload?.isAxiosError === true,
+    },
+  };
+});
 
 describe('getWeatherIconFromUrl', () => {
   const testCases = [
@@ -26,13 +36,7 @@ describe('getWeatherIconFromUrl', () => {
 
 describe('getWeather', () => {
   beforeEach(() => {
-    // Cross-compatible way to mock fetch for both Vitest and Bun
-    if (typeof vi.stubGlobal === 'function') {
-      vi.stubGlobal('fetch', vi.fn());
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      globalThis.fetch = vi.fn() as any;
-    }
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -51,55 +55,49 @@ describe('getWeather', () => {
 
   it('fetches weather data successfully', async () => {
     const mockPointsResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
-        },
-      }),
+      properties: {
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+      },
     };
 
     const mockForecastResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          periods: [
-            {
-              number: 1,
-              name: 'Today',
-              startTime: '2023-10-26T06:00:00-04:00',
-              endTime: '2023-10-26T18:00:00-04:00',
-              isDaytime: true,
-              temperature: 72,
-              temperatureUnit: 'F',
-              shortForecast: 'Partly Cloudy',
-              detailedForecast: 'Partly cloudy, with a high near 72.',
-              icon: 'https://api.weather.gov/icons/land/day/sct?size=medium',
-            },
-            {
-              number: 2,
-              name: 'Tonight',
-              startTime: '2023-10-26T18:00:00-04:00',
-              endTime: '2023-10-27T06:00:00-04:00',
-              isDaytime: false,
-              temperature: 60,
-              temperatureUnit: 'F',
-              shortForecast: 'Mostly Clear',
-              detailedForecast: 'Mostly clear, with a low around 60.',
-              icon: 'https://api.weather.gov/icons/land/night/few?size=medium',
-            },
-          ],
-        },
-      }),
+      properties: {
+        periods: [
+          {
+            number: 1,
+            name: 'Today',
+            startTime: '2023-10-26T06:00:00-04:00',
+            endTime: '2023-10-26T18:00:00-04:00',
+            isDaytime: true,
+            temperature: 72,
+            temperatureUnit: 'F',
+            shortForecast: 'Partly Cloudy',
+            detailedForecast: 'Partly cloudy, with a high near 72.',
+            icon: 'https://api.weather.gov/icons/land/day/sct?size=medium',
+          },
+          {
+            number: 2,
+            name: 'Tonight',
+            startTime: '2023-10-26T18:00:00-04:00',
+            endTime: '2023-10-27T06:00:00-04:00',
+            isDaytime: false,
+            temperature: 60,
+            temperatureUnit: 'F',
+            shortForecast: 'Mostly Clear',
+            detailedForecast: 'Mostly clear, with a low around 60.',
+            icon: 'https://api.weather.gov/icons/land/night/few?size=medium',
+          },
+        ],
+      },
     };
 
-    // Mock the fetch implementation
-    (fetch as Mock).mockImplementation((url: string) => {
+    // Mock the axios implementation
+    (axios.get as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
-        return Promise.resolve(mockPointsResponse);
+        return Promise.resolve({ data: mockPointsResponse });
       }
       if (url.includes('/forecast')) {
-        return Promise.resolve(mockForecastResponse);
+        return Promise.resolve({ data: mockForecastResponse });
       }
       return Promise.reject(new Error('Unknown URL'));
     });
@@ -116,59 +114,58 @@ describe('getWeather', () => {
       weatherIcon: 'PartlyCloudy',
     });
 
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledTimes(2);
+    // Verify timeout and size limits are applied
+    expect(axios.get).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+      timeout: 10000,
+      maxContentLength: 5242880
+    }));
   });
 
   it('correctly sets high and low temperatures for nighttime forecast', async () => {
     const mockPointsResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
-        },
-      }),
+      properties: {
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+      },
     };
 
     const mockForecastResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          periods: [
-            {
-              number: 1,
-              name: 'Tonight',
-              startTime: '2023-10-26T18:00:00-04:00',
-              endTime: '2023-10-27T06:00:00-04:00',
-              isDaytime: false,
-              temperature: 55,
-              temperatureUnit: 'F',
-              shortForecast: 'Clear',
-              detailedForecast: 'Clear, with a low around 55.',
-              icon: 'https://api.weather.gov/icons/land/night/few?size=medium',
-            },
-            {
-              number: 2,
-              name: 'Tomorrow',
-              startTime: '2023-10-27T06:00:00-04:00',
-              endTime: '2023-10-27T18:00:00-04:00',
-              isDaytime: true,
-              temperature: 75,
-              temperatureUnit: 'F',
-              shortForecast: 'Sunny',
-              detailedForecast: 'Sunny, with a high near 75.',
-              icon: 'https://api.weather.gov/icons/land/day/few?size=medium',
-            },
-          ],
-        },
-      }),
+      properties: {
+        periods: [
+          {
+            number: 1,
+            name: 'Tonight',
+            startTime: '2023-10-26T18:00:00-04:00',
+            endTime: '2023-10-27T06:00:00-04:00',
+            isDaytime: false,
+            temperature: 55,
+            temperatureUnit: 'F',
+            shortForecast: 'Clear',
+            detailedForecast: 'Clear, with a low around 55.',
+            icon: 'https://api.weather.gov/icons/land/night/few?size=medium',
+          },
+          {
+            number: 2,
+            name: 'Tomorrow',
+            startTime: '2023-10-27T06:00:00-04:00',
+            endTime: '2023-10-27T18:00:00-04:00',
+            isDaytime: true,
+            temperature: 75,
+            temperatureUnit: 'F',
+            shortForecast: 'Sunny',
+            detailedForecast: 'Sunny, with a high near 75.',
+            icon: 'https://api.weather.gov/icons/land/day/few?size=medium',
+          },
+        ],
+      },
     };
 
-    (fetch as Mock).mockImplementation((url: string) => {
+    (axios.get as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
-        return Promise.resolve(mockPointsResponse);
+        return Promise.resolve({ data: mockPointsResponse });
       }
       if (url.includes('/forecast')) {
-        return Promise.resolve(mockForecastResponse);
+        return Promise.resolve({ data: mockForecastResponse });
       }
       return Promise.reject(new Error('Unknown URL'));
     });
@@ -180,27 +177,30 @@ describe('getWeather', () => {
   });
 
   it('handles points fetch failure', async () => {
-    (fetch as Mock).mockImplementation(() => Promise.resolve({ ok: false, statusText: 'Not Found' }));
+    (axios.get as Mock).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 404, statusText: 'Not Found' }
+    });
 
     await expect(getWeather(0, 0)).rejects.toThrow('Failed to fetch points: Not Found');
   });
 
   it('handles forecast fetch failure', async () => {
     const mockPointsResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
-        },
-      }),
+      properties: {
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+      },
     };
 
-    (fetch as Mock).mockImplementation((url: string) => {
+    (axios.get as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
-        return Promise.resolve(mockPointsResponse);
+        return Promise.resolve({ data: mockPointsResponse });
       }
       if (url.includes('/forecast')) {
-        return Promise.resolve({ ok: false, statusText: 'Internal Server Error' });
+        return Promise.reject({
+          isAxiosError: true,
+          response: { status: 500, statusText: 'Internal Server Error' }
+        });
       }
       return Promise.reject(new Error('Unknown URL'));
     });
@@ -210,29 +210,23 @@ describe('getWeather', () => {
 
   it('handles empty forecast periods', async () => {
     const mockPointsResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
-        },
-      }),
+      properties: {
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+      },
     };
 
     const mockForecastResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          periods: [],
-        },
-      }),
+      properties: {
+        periods: [],
+      },
     };
 
-    (fetch as Mock).mockImplementation((url: string) => {
+    (axios.get as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
-        return Promise.resolve(mockPointsResponse);
+        return Promise.resolve({ data: mockPointsResponse });
       }
       if (url.includes('/forecast')) {
-        return Promise.resolve(mockForecastResponse);
+        return Promise.resolve({ data: mockForecastResponse });
       }
       return Promise.reject(new Error('Unknown URL'));
     });
@@ -242,42 +236,36 @@ describe('getWeather', () => {
 
   it('caches grid point URL for subsequent calls', async () => {
     const mockPointsResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
-        },
-      }),
+      properties: {
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+      },
     };
 
     const mockForecastResponse = {
-      ok: true,
-      json: async () => ({
-        properties: {
-          periods: [
-            {
-              number: 1,
-              name: 'Today',
-              startTime: '2023-10-26T06:00:00-04:00',
-              endTime: '2023-10-26T18:00:00-04:00',
-              isDaytime: true,
-              temperature: 72,
-              temperatureUnit: 'F',
-              shortForecast: 'Partly Cloudy',
-              detailedForecast: 'Partly cloudy, with a high near 72.',
-              icon: 'https://api.weather.gov/icons/land/day/sct?size=medium',
-            },
-          ],
-        },
-      }),
+      properties: {
+        periods: [
+          {
+            number: 1,
+            name: 'Today',
+            startTime: '2023-10-26T06:00:00-04:00',
+            endTime: '2023-10-26T18:00:00-04:00',
+            isDaytime: true,
+            temperature: 72,
+            temperatureUnit: 'F',
+            shortForecast: 'Partly Cloudy',
+            detailedForecast: 'Partly cloudy, with a high near 72.',
+            icon: 'https://api.weather.gov/icons/land/day/sct?size=medium',
+          },
+        ],
+      },
     };
 
-    (fetch as Mock).mockImplementation((url: string) => {
+    (axios.get as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
-        return Promise.resolve(mockPointsResponse);
+        return Promise.resolve({ data: mockPointsResponse });
       }
       if (url.includes('/forecast')) {
-        return Promise.resolve(mockForecastResponse);
+        return Promise.resolve({ data: mockForecastResponse });
       }
       return Promise.reject(new Error('Unknown URL'));
     });
@@ -288,16 +276,16 @@ describe('getWeather', () => {
     const long = -75.0000;
 
     await getWeather(lat, long);
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledTimes(2);
 
     // Second call: should fetch only forecast (using cached grid point URL)
     await getWeather(lat, long);
-    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(axios.get).toHaveBeenCalledTimes(3);
   });
 
   it('logs a generic error message and does not expose internal error details', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    (fetch as Mock).mockImplementation(() => Promise.reject(new Error('Sensitive internal path: /var/www/html')));
+    (axios.get as Mock).mockRejectedValue(new Error('Sensitive internal path: /var/www/html'));
 
     await expect(getWeather(0, 0)).rejects.toThrow();
 
