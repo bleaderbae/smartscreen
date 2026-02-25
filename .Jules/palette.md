@@ -30,3 +30,7 @@
 ## 2026-02-24 - False Affordances in Cards
 **Learning:** Widgets that use `role="button"` and pointer cursors but lack actual interactivity confuse users (especially screen reader users) who expect an action.
 **Action:** Always implement a meaningful action (like expanding for details) for card-like widgets that appear interactive, or remove the interactive semantics if it's purely display.
+
+## 2026-03-04 - Silent Failure in List Inputs
+**Learning:** When preventing duplicates in a list, silently ignoring the input (clearing it without adding) confuses users who assume the app is broken or the action failed.
+**Action:** Always provide immediate inline feedback (e.g., "Item already on list") and disable the submission button when a duplicate is detected, rather than failing silently on submit.
