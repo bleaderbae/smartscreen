@@ -278,9 +278,9 @@ describe('getWeather', () => {
     await getWeather(lat, long);
     expect(axios.get).toHaveBeenCalledTimes(2);
 
-    // Second call: should fetch only forecast (using cached grid point URL)
+    // Second call: should use cached forecast (0 additional calls)
     await getWeather(lat, long);
-    expect(axios.get).toHaveBeenCalledTimes(3);
+    expect(axios.get).toHaveBeenCalledTimes(2);
   });
 
   it('logs a generic error message and does not expose internal error details', async () => {

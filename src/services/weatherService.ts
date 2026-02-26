@@ -61,9 +61,11 @@ export function getWeatherIconFromUrl(iconUrl: string): WeatherData['weatherIcon
   return 'Unknown';
 }
 
-// Cache for grid points to avoid redundant API calls
+// Cache for grid points and forecasts to avoid redundant API calls
 const pointsCache = new Map<string, string>();
+const forecastCache = new Map<string, { data: ForecastResponse; timestamp: number }>();
 const MAX_CACHE_SIZE = 100;
+const FORECAST_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 const AXIOS_CONFIG = {
   timeout: 10000, // 10 seconds
@@ -115,22 +117,34 @@ export async function getWeather(lat: number, long: number): Promise<WeatherData
     }
 
     let forecastData: ForecastResponse;
-    try {
-      const forecastResponse = await axios.get<ForecastResponse>(
-        forecastUrl,
-        AXIOS_CONFIG
-      );
-      forecastData = forecastResponse.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          pointsCache.delete(cacheKey);
+    const now = Date.now();
+    const cachedForecast = forecastCache.get(forecastUrl);
+
+    if (cachedForecast && (now - cachedForecast.timestamp) < FORECAST_CACHE_TTL) {
+      forecastData = cachedForecast.data;
+    } else {
+      try {
+        const forecastResponse = await axios.get<ForecastResponse>(
+          forecastUrl,
+          AXIOS_CONFIG
+        );
+        forecastData = forecastResponse.data;
+
+        if (forecastCache.size >= MAX_CACHE_SIZE) {
+          forecastCache.clear();
         }
-        if (error.response) {
-           throw new Error(`Failed to fetch forecast: ${error.response.statusText}`);
+        forecastCache.set(forecastUrl, { data: forecastData, timestamp: now });
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 404) {
+            pointsCache.delete(cacheKey);
+          }
+          if (error.response) {
+            throw new Error(`Failed to fetch forecast: ${error.response.statusText}`);
+          }
         }
+        throw error;
       }
-      throw error;
     }
 
     const periods = forecastData.properties.periods;
