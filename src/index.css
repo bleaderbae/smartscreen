@@ -30,3 +30,8 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
 }
+
+.celestial-body {
+  left: calc(var(--day-progress) - 24px);
+  bottom: var(--sun-height);
+}
