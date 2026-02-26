@@ -42,17 +42,22 @@ describe('dailyFeedService', () => {
       expect(result.id).toBe('nasa-fallback');
     });
 
-    it('calls axios with correct URL including API key', async () => {
+    it('calls axios with correct URL and API key in params', async () => {
       (axios.get as any).mockResolvedValue({
         data: {}
       });
 
       await getNASAData();
 
-      // Verifies that the URL is constructed with the fallback or environment variable
+      // Verifies that the URL is the base URL and API key is passed in params
       expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining('api_key=DEMO_KEY'),
-        expect.anything()
+        'https://api.nasa.gov/planetary/apod',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            api_key: 'DEMO_KEY',
+            thumbs: 'True'
+          })
+        })
       );
     });
   });
