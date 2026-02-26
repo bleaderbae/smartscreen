@@ -30,3 +30,7 @@
 ## 2026-02-24 - False Affordances in Cards
 **Learning:** Widgets that use `role="button"` and pointer cursors but lack actual interactivity confuse users (especially screen reader users) who expect an action.
 **Action:** Always implement a meaningful action (like expanding for details) for card-like widgets that appear interactive, or remove the interactive semantics if it's purely display.
+
+## 2026-02-25 - Duplicate Entry Feedback and State Cleanup
+**Learning:** Preventing duplicate list entries silently confuses users, while persisting error states after closing/reopening forms leads to a broken experience.
+**Action:** Always provide immediate inline feedback for duplicates (e.g., "Item already in list") and ensure all temporary form states (text, errors) are reset when the form is toggled visibility.

@@ -126,6 +126,49 @@ describe('ShoppingListWidget', () => {
     expect(screen.getByRole('button', { name: /^Almond Milk$/i })).toBeInTheDocument();
   });
 
+  it('shows error message when trying to add duplicate item via form', () => {
+    render(<ShoppingListWidget />);
+
+    // Open add form
+    fireEvent.click(screen.getByRole('button', { name: /Add item/i }));
+
+    // Type \"Milk\" which already exists
+    const input = screen.getByRole('textbox', { name: /New item name/i });
+    fireEvent.change(input, { target: { value: 'Milk' } });
+
+    // Submit
+    const confirmButton = screen.getByRole('button', { name: /Confirm add item/i });
+    fireEvent.click(confirmButton);
+
+    // Error should be visible
+    expect(screen.getByRole('alert')).toHaveTextContent(/'Milk' is already on the list!/i);
+
+    // Form should still be open
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('clears error message when user modifies input', () => {
+    render(<ShoppingListWidget />);
+
+    // Open add form
+    fireEvent.click(screen.getByRole('button', { name: /Add item/i }));
+
+    // Trigger error
+    const input = screen.getByRole('textbox', { name: /New item name/i });
+    fireEvent.change(input, { target: { value: 'Milk' } });
+    fireEvent.click(screen.getByRole('button', { name: /Confirm add item/i }));
+
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+
+    // Change input
+    fireEvent.change(input, { target: { value: 'Milk 2' } });
+
+    // Error should be gone
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-invalid', 'false');
+  });
+
   it('handles corrupted localStorage gracefully', () => {
     localStorage.setItem('shopping-list', 'INVALID_JSON{');
 
