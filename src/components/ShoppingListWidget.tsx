@@ -41,6 +41,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 const ShoppingListWidget: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [newItemText, setNewItemText] = useState('');
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
 
   const [items, setItems] = useState<ShoppingItem[]>(() => {
     const saved = localStorage.getItem('shopping-list');
@@ -67,9 +68,12 @@ const ShoppingListWidget: React.FC = () => {
     ));
   };
 
-  const addItem = (text: string, iconName?: string, color?: string) => {
+  const addItem = (text: string, iconName?: string, color?: string): boolean => {
     // Avoid duplicates for quick add
-    if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
+    if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) {
+      setDuplicateError(`'${text}' is already on the list!`);
+      return false;
+    }
     
     setItems(prev => [{
       id: Date.now().toString(),
@@ -78,6 +82,9 @@ const ShoppingListWidget: React.FC = () => {
       icon: iconName,
       color
     }, ...prev]);
+
+    setDuplicateError(null);
+    return true;
   };
 
   const removeItem = (e: React.MouseEvent, id: string) => {
@@ -106,7 +113,11 @@ const ShoppingListWidget: React.FC = () => {
           <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Shopping List</span>
         </div>
         <button 
-          onClick={() => setIsAdding(!isAdding)}
+          onClick={() => {
+            setIsAdding(!isAdding);
+            setDuplicateError(null);
+            setNewItemText('');
+          }}
           className={`p-2 rounded-full text-blue-400 active:scale-90 transition-all ${isAdding ? 'bg-blue-500/20 rotate-45' : 'bg-white/5'}`}
           aria-label={isAdding ? "Cancel adding item" : "Add item"}
           aria-expanded={isAdding}
@@ -120,9 +131,11 @@ const ShoppingListWidget: React.FC = () => {
           onSubmit={(e) => {
             e.preventDefault();
             if (newItemText.trim()) {
-              addItem(newItemText.trim());
-              setNewItemText('');
-              setIsAdding(false);
+              const success = addItem(newItemText.trim());
+              if (success) {
+                setNewItemText('');
+                setIsAdding(false);
+              }
             }
           }}
           className="animate-fadeIn"
@@ -132,10 +145,15 @@ const ShoppingListWidget: React.FC = () => {
               autoFocus
               type="text"
               value={newItemText}
-              onChange={(e) => setNewItemText(e.target.value)}
+              onChange={(e) => {
+                setNewItemText(e.target.value);
+                if (duplicateError) setDuplicateError(null);
+              }}
               placeholder="What do you need?"
-              className="flex-1 bg-white/10 rounded-xl px-4 py-3 text-lg text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-400 border border-white/5"
+              className={`flex-1 bg-white/10 rounded-xl px-4 py-3 text-lg text-white placeholder:text-gray-500 outline-none focus:ring-2 ${duplicateError ? 'focus:ring-red-400 border-red-400/50' : 'focus:ring-blue-400 border-white/5'} border`}
               aria-label="New item name"
+              aria-invalid={!!duplicateError}
+              aria-errormessage={duplicateError ? "duplicate-error" : undefined}
             />
             <button
               type="submit"
@@ -146,6 +164,11 @@ const ShoppingListWidget: React.FC = () => {
               <Plus size={24} />
             </button>
           </div>
+          {duplicateError && (
+            <p id="duplicate-error" className="text-red-400 text-xs mt-2 px-1 font-medium animate-pulse" role="alert">
+              {duplicateError}
+            </p>
+          )}
         </form>
       )}
 
