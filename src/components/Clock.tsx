@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import { format } from 'date-fns';
 import { Sunrise, Sunset, Calendar } from 'lucide-react';
 import type { CalendarEvent } from '../services/calendarService';
@@ -75,6 +75,15 @@ const Clock: React.FC<ClockProps> = ({ nextEvent }) => {
 
   const nextEventTheme = nextEvent ? FAMILY_PROFILES[nextEvent.source]?.theme : null;
 
+  const celestialRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (celestialRef.current) {
+      celestialRef.current.style.setProperty('--day-progress', `${dayProgress}%`);
+      celestialRef.current.style.setProperty('--sun-height', `${sunHeight * 4 + 0.5}rem`);
+    }
+  }, [dayProgress, sunHeight]);
+
   return (
     <div className="flex flex-col items-center mt-8 mb-12 w-full max-w-2xl mx-auto">
       {/* Digital Clock */}
@@ -105,14 +114,8 @@ const Clock: React.FC<ClockProps> = ({ nextEvent }) => {
         
         {/* Moving Celestial Body */}
         <div 
-          className="absolute transition-all duration-1000 ease-linear flex items-center justify-center"
-          style={{ 
-            left: `calc(${dayProgress}% - 24px)`,
-            bottom: `${sunHeight * 4 + 0.5}rem`,
-            width: '48px',
-            height: '48px',
-            zIndex: 10
-          }}
+          ref={celestialRef}
+          className="celestial-body absolute transition-all duration-1000 ease-linear flex items-center justify-center w-12 h-12 z-10"
         >
           {/* Broad Atmosphere Glow */}
           <div className={`absolute w-48 h-48 rounded-full opacity-20 blur-3xl ${timeContext.sunColor}`} />
