@@ -62,10 +62,18 @@ export const FAMILY_PROFILES: Record<string, FamilyMember> = {
   }
 };
 
+/**
+ * Helper to derive calendar URLs from family profiles.
+ * Filter out members without a calendar URL and return a simple name -> url mapping.
+ */
+export const deriveCalendarUrls = (profiles: Record<string, FamilyMember>): Record<string, string> => {
+  return Object.fromEntries(
+    Object.entries(profiles)
+      .filter(([, member]) => member.calendarUrl)
+      .map(([name, member]) => [name, member.calendarUrl])
+  );
+};
+
 // For backward compatibility or helper function
-export const CALENDAR_URLS: Record<string, string> = Object.fromEntries(
-  Object.entries(FAMILY_PROFILES)
-    .filter(([, member]) => member.calendarUrl)
-    .map(([name, member]) => [name, member.calendarUrl])
-);
+export const CALENDAR_URLS: Record<string, string> = deriveCalendarUrls(FAMILY_PROFILES);
 

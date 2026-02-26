@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { getWeather, type WeatherData } from './services/weatherService';
 import { fetchCalendarEvents, type CalendarEvent } from './services/calendarService';
-import { DEFAULT_COORDINATES, FAMILY_PROFILES } from './config';
+import { DEFAULT_COORDINATES, FAMILY_PROFILES, CALENDAR_URLS } from './config';
 import DailyFeedWidget from './components/DailyFeedWidget';
 import ShoppingListWidget from './components/ShoppingListWidget';
 import WeatherWidget from './components/WeatherWidget';
@@ -37,17 +37,11 @@ const App: React.FC = () => {
   }, []);
 
   const fetchCalendarData = useCallback(async () => {
-    const urls = Object.fromEntries(
-      Object.entries(FAMILY_PROFILES)
-        .filter(([, member]) => member.calendarUrl)
-        .map(([name, member]) => [name, member.calendarUrl])
-    );
-
-    if (Object.keys(urls).length === 0) return;
+    if (Object.keys(CALENDAR_URLS).length === 0) return;
     
     setCalendarLoading(true);
     try {
-      const data = await fetchCalendarEvents(urls);
+      const data = await fetchCalendarEvents(CALENDAR_URLS);
       setCalendarEvents(data);
     } catch (error) {
       console.error("Failed to load calendar", error);
