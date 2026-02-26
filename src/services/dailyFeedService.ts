@@ -10,8 +10,13 @@ export interface FeedItem {
   thumbnailUrl?: string;
 }
 
-const NASA_API_KEY = import.meta.env.VITE_NASA_API_KEY || 'DEMO_KEY';
-const NASA_APOD_URL = `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY}&thumbs=True`;
+const NASA_API_KEY = import.meta.env.VITE_NASA_API_KEY;
+
+if (!NASA_API_KEY) {
+  console.warn('VITE_NASA_API_KEY is not defined. NASA features will use the rate-limited "DEMO_KEY". Get your own at https://api.nasa.gov/');
+}
+
+const NASA_APOD_URL = 'https://api.nasa.gov/planetary/apod';
 
 const DOG_IMAGE_URL = 'https://dog.ceo/api/breeds/image/random';
 const DOG_FACT_URL = 'https://dogapi.dog/api/v2/facts';
@@ -27,7 +32,13 @@ const AXIOS_CONFIG = {
 
 export const getNASAData = async (): Promise<FeedItem> => {
   try {
-    const response = await axios.get(NASA_APOD_URL, AXIOS_CONFIG);
+    const response = await axios.get(NASA_APOD_URL, {
+      ...AXIOS_CONFIG,
+      params: {
+        api_key: NASA_API_KEY || 'DEMO_KEY',
+        thumbs: 'True'
+      }
+    });
     const data = response.data;
 
     // Handle video case: use thumbnail if available, otherwise fallback or use url if it's an image
@@ -49,11 +60,12 @@ export const getNASAData = async (): Promise<FeedItem> => {
       thumbnailUrl: data.thumbnail_url
     };
   } catch (error) {
-    // Log only the error message to avoid leaking the API key in the URL (which might be in the full error object)
+    // Log sanitized error to avoid leaking the API key potentially contained in the full error or URL
     if (axios.isAxiosError(error)) {
-      console.error(`Error fetching NASA data: ${error.message}`);
+      const status = error.response?.status;
+      console.error(`Error fetching NASA data${status ? ` [${status}]` : ''}: ${error.message}`);
     } else {
-      console.error('Error fetching NASA data:', error);
+      console.error('Error fetching NASA data:', error instanceof Error ? error.message : 'Unknown error');
     }
 
     // Return fallback or rethrow. For UI, returning a safe fallback is better.
