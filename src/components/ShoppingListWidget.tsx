@@ -12,6 +12,7 @@ import {
   Beef, 
   Zap,
   Trash2,
+  AlertCircle,
   type LucideIcon
 } from 'lucide-react';
 import { safeJSONParse } from '../utils/security';
@@ -96,6 +97,8 @@ const ShoppingListWidget: React.FC = () => {
     }
   };
 
+  const isDuplicate = items.some(i => i.text.toLowerCase() === newItemText.trim().toLowerCase() && !i.completed);
+
   return (
     <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2 flex flex-col gap-6">
       <div className="flex justify-between items-center">
@@ -119,7 +122,7 @@ const ShoppingListWidget: React.FC = () => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (newItemText.trim()) {
+            if (newItemText.trim() && !isDuplicate) {
               addItem(newItemText.trim());
               setNewItemText('');
               setIsAdding(false);
@@ -127,20 +130,38 @@ const ShoppingListWidget: React.FC = () => {
           }}
           className="animate-fadeIn"
         >
-          <div className="flex gap-2">
-            <input
-              autoFocus
-              type="text"
-              value={newItemText}
-              onChange={(e) => setNewItemText(e.target.value)}
-              placeholder="What do you need?"
-              className="flex-1 bg-white/10 rounded-xl px-4 py-3 text-lg text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-400 border border-white/5"
-              aria-label="New item name"
-            />
+          <div className="flex gap-2 items-start">
+            <div className="flex-1 relative">
+              <input
+                autoFocus
+                type="text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="What do you need?"
+                className={`w-full bg-white/10 rounded-xl px-4 py-3 text-lg text-white placeholder:text-gray-500 outline-none focus:ring-2 border transition-colors ${
+                  isDuplicate
+                    ? 'border-red-500/50 focus:ring-red-400'
+                    : 'border-white/5 focus:ring-blue-400'
+                }`}
+                aria-label="New item name"
+                aria-invalid={isDuplicate}
+                aria-errormessage={isDuplicate ? "duplicate-error" : undefined}
+              />
+              {isDuplicate && (
+                <div
+                  id="duplicate-error"
+                  className="absolute -bottom-6 left-2 flex items-center gap-1.5 text-red-400 text-xs font-medium animate-fadeIn"
+                  role="alert"
+                >
+                  <AlertCircle size={12} />
+                  <span>Item already on list</span>
+                </div>
+              )}
+            </div>
             <button
               type="submit"
-              disabled={!newItemText.trim()}
-              className="px-4 bg-blue-500/20 text-blue-400 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500/30 transition-colors"
+              disabled={!newItemText.trim() || isDuplicate}
+              className="px-4 py-3 bg-blue-500/20 text-blue-400 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500/30 transition-colors"
               aria-label="Confirm add item"
             >
               <Plus size={24} />
