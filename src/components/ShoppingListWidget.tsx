@@ -68,12 +68,18 @@ const ShoppingListWidget: React.FC = () => {
   };
 
   const addItem = (text: string, iconName?: string, color?: string) => {
+    // DoS Protection: Limit total items
+    if (items.length >= 100) return;
+
+    // DoS Protection: Input sanitization/truncation
+    const safeText = text.slice(0, 50);
+
     // Avoid duplicates for quick add
-    if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
+    if (items.find(i => i.text.toLowerCase() === safeText.toLowerCase() && !i.completed)) return;
     
     setItems(prev => [{
       id: Date.now().toString(),
-      text,
+      text: safeText,
       completed: false,
       icon: iconName,
       color
@@ -131,6 +137,7 @@ const ShoppingListWidget: React.FC = () => {
             <input
               autoFocus
               type="text"
+              maxLength={50}
               value={newItemText}
               onChange={(e) => setNewItemText(e.target.value)}
               placeholder="What do you need?"
