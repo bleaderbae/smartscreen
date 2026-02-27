@@ -12,7 +12,8 @@ import {
   Beef, 
   Zap,
   Trash2,
-  type LucideIcon
+  type LucideIcon,
+  AlertCircle
 } from 'lucide-react';
 import { safeJSONParse } from '../utils/security';
 
@@ -38,9 +39,14 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Milk, Egg, Apple, Carrot, Coffee, Beef, Zap
 };
 
+// Security constants
+export const MAX_ITEMS = 100;
+export const MAX_INPUT_LENGTH = 50;
+
 const ShoppingListWidget: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [newItemText, setNewItemText] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const [items, setItems] = useState<ShoppingItem[]>(() => {
     const saved = localStorage.getItem('shopping-list');
@@ -68,6 +74,13 @@ const ShoppingListWidget: React.FC = () => {
   };
 
   const addItem = (text: string, iconName?: string, color?: string) => {
+    setError(null);
+
+    if (items.length >= MAX_ITEMS) {
+      setError(`List cannot exceed ${MAX_ITEMS} items.`);
+      return;
+    }
+
     // Avoid duplicates for quick add
     if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
     
@@ -83,10 +96,12 @@ const ShoppingListWidget: React.FC = () => {
   const removeItem = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     setItems(prev => prev.filter(item => item.id !== id));
+    setError(null); // Clear error if space is made
   };
 
   const clearCompleted = () => {
     setItems(prev => prev.filter(i => !i.completed));
+    setError(null); // Clear error if space is made
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
@@ -95,6 +110,8 @@ const ShoppingListWidget: React.FC = () => {
       toggleItem(id);
     }
   };
+
+  const isListFull = items.length >= MAX_ITEMS;
 
   return (
     <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2 flex flex-col gap-6">
@@ -106,14 +123,25 @@ const ShoppingListWidget: React.FC = () => {
           <span className="font-semibold uppercase text-xs tracking-widest text-gray-400">Shopping List</span>
         </div>
         <button 
-          onClick={() => setIsAdding(!isAdding)}
-          className={`p-2 rounded-full text-blue-400 active:scale-90 transition-all ${isAdding ? 'bg-blue-500/20 rotate-45' : 'bg-white/5'}`}
-          aria-label={isAdding ? "Cancel adding item" : "Add item"}
+          onClick={() => {
+            setIsAdding(!isAdding);
+            setError(null);
+          }}
+          disabled={isListFull && !isAdding}
+          className={`p-2 rounded-full text-blue-400 active:scale-90 transition-all ${isAdding ? 'bg-blue-500/20 rotate-45' : 'bg-white/5'} ${isListFull && !isAdding ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label={isAdding ? "Cancel adding item" : (isListFull ? "List full" : "Add item")}
           aria-expanded={isAdding}
         >
           <Plus size={24} />
         </button>
       </div>
+
+      {error && (
+        <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 p-3 rounded-xl border border-red-500/20 animate-fadeIn" role="alert">
+          <AlertCircle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
 
       {isAdding && (
         <form
@@ -122,7 +150,7 @@ const ShoppingListWidget: React.FC = () => {
             if (newItemText.trim()) {
               addItem(newItemText.trim());
               setNewItemText('');
-              setIsAdding(false);
+              if (!isListFull) setIsAdding(false);
             }
           }}
           className="animate-fadeIn"
@@ -134,17 +162,21 @@ const ShoppingListWidget: React.FC = () => {
               value={newItemText}
               onChange={(e) => setNewItemText(e.target.value)}
               placeholder="What do you need?"
+              maxLength={MAX_INPUT_LENGTH}
               className="flex-1 bg-white/10 rounded-xl px-4 py-3 text-lg text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-400 border border-white/5"
               aria-label="New item name"
             />
             <button
               type="submit"
-              disabled={!newItemText.trim()}
+              disabled={!newItemText.trim() || isListFull}
               className="px-4 bg-blue-500/20 text-blue-400 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500/30 transition-colors"
               aria-label="Confirm add item"
             >
               <Plus size={24} />
             </button>
+          </div>
+          <div className="text-right text-xs text-gray-500 mt-1 px-1">
+            {newItemText.length}/{MAX_INPUT_LENGTH}
           </div>
         </form>
       )}
@@ -155,14 +187,15 @@ const ShoppingListWidget: React.FC = () => {
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {QUICK_ADD_ITEMS.map((preset) => {
             const isActive = items.some(i => i.text.toLowerCase() === preset.text.toLowerCase() && !i.completed);
+            const isDisabled = isActive || isListFull;
 
             return (
               <button
                 key={preset.text}
                 onClick={() => addItem(preset.text, preset.iconName, preset.color)}
-                disabled={isActive}
-                aria-label={isActive ? `${preset.text} (Added)` : `Quick add ${preset.text}`}
-                className={`flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform ${isActive ? 'opacity-50 cursor-default' : ''}`}
+                disabled={isDisabled}
+                aria-label={isActive ? `${preset.text} (Added)` : (isListFull ? `${preset.text} (List full)` : `Quick add ${preset.text}`)}
+                className={`flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform ${isDisabled ? 'opacity-50 cursor-default' : ''}`}
               >
                 <div className={`relative p-4 rounded-2xl bg-${preset.color}-500/10 border border-${preset.color}-500/20 group-active:bg-${preset.color}-500/20`}>
                   <preset.icon className={`text-${preset.color}-400`} size={32} />
@@ -181,7 +214,10 @@ const ShoppingListWidget: React.FC = () => {
 
       {/* Active List */}
       <div className="space-y-3">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 px-1">Items</span>
+        <div className="flex justify-between items-end px-1">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Items</span>
+          <span className="text-[10px] font-bold text-gray-600">{items.length}/{MAX_ITEMS}</span>
+        </div>
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-400 animate-fadeIn">

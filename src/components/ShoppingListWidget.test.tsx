@@ -42,7 +42,7 @@ describe('ShoppingListWidget', () => {
     // Check Eggs isn't in the active list initially
     expect(screen.queryByRole('button', { name: /^Eggs$/i })).not.toBeInTheDocument();
 
-    // Click \"Eggs\" in the Quick Add menu
+    // Click "Eggs" in the Quick Add menu
     const eggButton = screen.getByRole('button', { name: /Quick add Eggs/i });
     fireEvent.click(eggButton);
 
@@ -73,7 +73,7 @@ describe('ShoppingListWidget', () => {
     // Initially, the input should not be visible
     expect(screen.queryByRole('textbox', { name: /New item name/i })).not.toBeInTheDocument();
 
-    // Click the \"Add item\" button
+    // Click the "Add item" button
     const addButton = screen.getByRole('button', { name: /Add item/i });
     fireEvent.click(addButton);
 
@@ -83,7 +83,7 @@ describe('ShoppingListWidget', () => {
     expect(input).toHaveFocus();
 
     // Click it again to close (cancel)
-    // Note: The aria-label changes to \"Cancel adding item\"
+    // Note: The aria-label changes to "Cancel adding item"
     const cancelButton = screen.getByRole('button', { name: /Cancel adding item/i });
     fireEvent.click(cancelButton);
 
@@ -96,7 +96,7 @@ describe('ShoppingListWidget', () => {
     // Open add form
     fireEvent.click(screen.getByRole('button', { name: /Add item/i }));
 
-    // Type \"Sourdough Bread\"
+    // Type "Sourdough Bread"
     const input = screen.getByRole('textbox', { name: /New item name/i });
     fireEvent.change(input, { target: { value: 'Sourdough Bread' } });
 
@@ -117,7 +117,7 @@ describe('ShoppingListWidget', () => {
     // Open add form
     fireEvent.click(screen.getByRole('button', { name: /Add item/i }));
 
-    // Type \"Almond Milk\" and hit Enter
+    // Type "Almond Milk" and hit Enter
     const input = screen.getByRole('textbox', { name: /New item name/i });
     fireEvent.change(input, { target: { value: 'Almond Milk' } });
     fireEvent.submit(input.closest('form')!);
@@ -198,5 +198,71 @@ describe('ShoppingListWidget', () => {
 
     // Check if default items are rendered (fallback logic)
     expect(screen.getAllByText('Milk').length).toBeGreaterThan(0);
+  });
+
+  describe('Security Constraints', () => {
+    it('enforces maximum input length on the text field', () => {
+      render(<ShoppingListWidget />);
+
+      // Open add form
+      fireEvent.click(screen.getByRole('button', { name: /Add item/i }));
+
+      const input = screen.getByRole('textbox', { name: /New item name/i });
+      expect(input).toHaveAttribute('maxLength', '50');
+    });
+
+    it('prevents adding items when limit is reached', () => {
+      // Mock localStorage with 100 items
+      const manyItems = Array.from({ length: 100 }, (_, i) => ({
+        id: `id-${i}`,
+        text: `Item ${i}`,
+        completed: false
+      }));
+      localStorage.setItem('shopping-list', JSON.stringify(manyItems));
+
+      render(<ShoppingListWidget />);
+
+      // Verify list full message in UI
+      expect(screen.getByText('100/100')).toBeInTheDocument();
+
+      // Check that add button is disabled/shows full state
+      // Use getAllByRole because multiple buttons might have "List full" in their label (quick add items too)
+      // The main add button has exact label "List full"
+      const addButton = screen.getByRole('button', { name: /^List full$/i });
+      expect(addButton).toBeInTheDocument();
+      expect(addButton).toBeDisabled();
+
+      // Check quick add buttons are also disabled
+      const milkQuickAdd = screen.getByRole('button', { name: /Milk \(List full\)/i });
+      expect(milkQuickAdd).toBeDisabled();
+    });
+
+    it('ui prevents adding beyond limit', () => {
+      const ninetyNineItems = Array.from({ length: 99 }, (_, i) => ({
+        id: `id-${i}`,
+        text: `Item ${i}`,
+        completed: false
+      }));
+      localStorage.setItem('shopping-list', JSON.stringify(ninetyNineItems));
+
+      render(<ShoppingListWidget />);
+
+      // Open form
+      fireEvent.click(screen.getByRole('button', { name: /Add item/i }));
+
+      // Add #100
+      const input = screen.getByRole('textbox', { name: /New item name/i });
+      fireEvent.change(input, { target: { value: 'Item 100' } });
+      fireEvent.click(screen.getByRole('button', { name: /Confirm add item/i }));
+
+      // Now we have 100 items. Form should have closed.
+      // Main view should show 100/100
+      expect(screen.getByText('100/100')).toBeInTheDocument();
+
+      // Main add button should be disabled "List full"
+      const addButton = screen.getByRole('button', { name: /^List full$/i });
+      expect(addButton).toBeInTheDocument();
+      expect(addButton).toBeDisabled();
+    });
   });
 });
