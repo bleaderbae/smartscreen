@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   ShoppingCart, 
   Plus, 
   CheckCircle2, 
-  Circle, 
   Milk, 
   Egg, 
   Carrot, 
@@ -11,18 +10,10 @@ import {
   Coffee, 
   Beef, 
   Zap,
-  Trash2,
   type LucideIcon
 } from 'lucide-react';
 import { safeJSONParse } from '../utils/security';
-
-interface ShoppingItem {
-  id: string;
-  text: string;
-  completed: boolean;
-  icon?: string; // Store icon name as string for persistence
-  color?: string;
-}
+import ShoppingListItem, { type ShoppingItem } from './ShoppingListItem';
 
 const QUICK_ADD_ITEMS: { text: string; icon: LucideIcon; color: string; iconName: string }[] = [
   { text: 'Milk', icon: Milk, color: 'blue', iconName: 'Milk' },
@@ -61,40 +52,57 @@ const ShoppingListWidget: React.FC = () => {
     localStorage.setItem('shopping-list', JSON.stringify(items));
   }, [items]);
 
-  const toggleItem = (id: string) => {
+  // Stable callback for toggling items
+  const toggleItem = useCallback((id: string) => {
     setItems(prev => prev.map(item => 
       item.id === id ? { ...item, completed: !item.completed } : item
     ));
-  };
+  }, []);
 
   const addItem = (text: string, iconName?: string, color?: string) => {
     // Avoid duplicates for quick add
-    if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
-    
-    setItems(prev => [{
-      id: Date.now().toString(),
-      text,
-      completed: false,
-      icon: iconName,
-      color
-    }, ...prev]);
+    setItems(prev => {
+        if (prev.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) {
+            return prev;
+        }
+        return [{
+            id: Date.now().toString(),
+            text,
+            completed: false,
+            icon: iconName,
+            color
+        }, ...prev];
+    });
   };
 
-  const removeItem = (e: React.MouseEvent, id: string) => {
+  // Stable callback for removing items
+  const removeItem = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     setItems(prev => prev.filter(item => item.id !== id));
-  };
+  }, []);
 
   const clearCompleted = () => {
     setItems(prev => prev.filter(i => !i.completed));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
+  // Stable callback for keyboard handling
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, id: string) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       toggleItem(id);
     }
-  };
+  }, [toggleItem]);
+
+  // Optimize: Pre-calculate active items for O(1) lookup in loop
+  const activeItemTexts = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach(item => {
+        if (!item.completed) {
+            set.add(item.text.toLowerCase());
+        }
+    });
+    return set;
+  }, [items]);
 
   return (
     <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2 flex flex-col gap-6">
@@ -154,7 +162,8 @@ const ShoppingListWidget: React.FC = () => {
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 px-1">Quick Add</span>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {QUICK_ADD_ITEMS.map((preset) => {
-            const isActive = items.some(i => i.text.toLowerCase() === preset.text.toLowerCase() && !i.completed);
+            // Optimized lookup: O(1) instead of O(N)
+            const isActive = activeItemTexts.has(preset.text.toLowerCase());
 
             return (
               <button
@@ -194,44 +203,14 @@ const ShoppingListWidget: React.FC = () => {
             {items.map((item) => {
               const Icon = item.icon ? ICON_MAP[item.icon] : null;
               return (
-                <li
-                  key={item.id}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all border border-transparent active:border-white/10 group"
-                >
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => toggleItem(item.id)}
-                    onKeyDown={(e) => handleKeyDown(e, item.id)}
-                    aria-label={item.text}
-                    aria-pressed={item.completed}
-                    className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
-                  >
-                    <div className="relative">
-                      {item.completed ? (
-                        <CheckCircle2 className="text-green-400 shrink-0" size={28} />
-                      ) : (
-                        <Circle className="text-gray-600 shrink-0" size={28} />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {Icon && <Icon size={20} className={`text-${item.color}-400/60`} />}
-                      <span className={`text-xl font-light transition-all ${
-                        item.completed ? 'line-through text-gray-500 italic' : 'text-gray-100'
-                      }`}>
-                        {item.text}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={(e) => removeItem(e, item.id)}
-                    className="p-2 text-gray-600 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
-                    aria-label={`Remove ${item.text}`}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </li>
+                <ShoppingListItem
+                    key={item.id}
+                    item={item}
+                    Icon={Icon}
+                    onToggle={toggleItem}
+                    onRemove={removeItem}
+                    onKeyDown={handleKeyDown}
+                />
               );
             })}
           </ul>

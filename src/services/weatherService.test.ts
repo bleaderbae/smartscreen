@@ -56,7 +56,7 @@ describe('getWeather', () => {
   it('fetches weather data successfully', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/10,10/forecast', // Unique URL
       },
     };
 
@@ -91,7 +91,6 @@ describe('getWeather', () => {
       },
     };
 
-    // Mock the axios implementation
     (axios.get as Mock).mockImplementation((url: string) => {
       if (url.includes('/points/')) {
         return Promise.resolve({ data: mockPointsResponse });
@@ -115,7 +114,6 @@ describe('getWeather', () => {
     });
 
     expect(axios.get).toHaveBeenCalledTimes(2);
-    // Verify timeout and size limits are applied
     expect(axios.get).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
       timeout: 10000,
       maxContentLength: 5242880
@@ -125,7 +123,7 @@ describe('getWeather', () => {
   it('correctly sets high and low temperatures for nighttime forecast', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/20,20/forecast', // Unique URL
       },
     };
 
@@ -170,7 +168,7 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    const data = await getWeather(40.7128, -74.0060);
+    const data = await getWeather(10.0, 10.0); // Unique Coords
 
     expect(data.high).toBe(75);
     expect(data.low).toBe(55);
@@ -188,7 +186,7 @@ describe('getWeather', () => {
   it('handles forecast fetch failure', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/30,30/forecast', // Unique URL
       },
     };
 
@@ -205,13 +203,13 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('Failed to fetch forecast: Internal Server Error');
+    await expect(getWeather(20.0, 20.0)).rejects.toThrow('Failed to fetch forecast: Internal Server Error'); // Unique Coords
   });
 
   it('handles empty forecast periods', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/40,40/forecast', // Unique URL
       },
     };
 
@@ -231,13 +229,13 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('No forecast data available');
+    await expect(getWeather(30.0, 30.0)).rejects.toThrow('No forecast data available'); // Unique Coords
   });
 
   it('caches grid point URL for subsequent calls', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/50,50/forecast', // Unique URL
       },
     };
 
@@ -271,7 +269,7 @@ describe('getWeather', () => {
     });
 
     // First call: should fetch points + forecast
-    // Use unique coordinates to ensure cache miss (since other tests might populate cache for default coords)
+    // Use unique coordinates to ensure cache miss
     const lat = 41.0000;
     const long = -75.0000;
 
