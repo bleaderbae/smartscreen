@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   ShoppingCart, 
   Plus, 
@@ -38,6 +38,66 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Milk, Egg, Apple, Carrot, Coffee, Beef, Zap
 };
 
+// Optimized: Memoized list item to prevent re-renders when parent state (like input) changes
+const ShoppingListItem = React.memo(({
+  item,
+  onToggle,
+  onRemove
+}: {
+  item: ShoppingItem,
+  onToggle: (id: string) => void,
+  onRemove: (e: React.MouseEvent, id: string) => void
+}) => {
+  const Icon = item.icon ? ICON_MAP[item.icon] : null;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggle(item.id);
+    }
+  };
+
+  return (
+    <li
+      className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all border border-transparent active:border-white/10 group"
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => onToggle(item.id)}
+        onKeyDown={handleKeyDown}
+        aria-label={item.text}
+        aria-pressed={item.completed}
+        className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
+      >
+        <div className="relative">
+          {item.completed ? (
+            <CheckCircle2 className="text-green-400 shrink-0" size={28} />
+          ) : (
+            <Circle className="text-gray-600 shrink-0" size={28} />
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {Icon && <Icon size={20} className={`text-${item.color}-400/60`} />}
+          <span className={`text-xl font-light transition-all ${
+            item.completed ? 'line-through text-gray-500 italic' : 'text-gray-100'
+          }`}>
+            {item.text}
+          </span>
+        </div>
+      </div>
+
+      <button
+        onClick={(e) => onRemove(e, item.id)}
+        className="p-2 text-gray-600 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
+        aria-label={`Remove ${item.text}`}
+      >
+        <Trash2 size={18} />
+      </button>
+    </li>
+  );
+});
+
 const ShoppingListWidget: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [newItemText, setNewItemText] = useState('');
@@ -61,40 +121,41 @@ const ShoppingListWidget: React.FC = () => {
     localStorage.setItem('shopping-list', JSON.stringify(items));
   }, [items]);
 
-  const toggleItem = (id: string) => {
+  // Optimize: Use useCallback for stable function references
+  const toggleItem = useCallback((id: string) => {
     setItems(prev => prev.map(item => 
       item.id === id ? { ...item, completed: !item.completed } : item
     ));
-  };
+  }, []);
 
-  const addItem = (text: string, iconName?: string, color?: string) => {
-    // Avoid duplicates for quick add
-    if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
-    
-    setItems(prev => [{
-      id: Date.now().toString(),
-      text,
-      completed: false,
-      icon: iconName,
-      color
-    }, ...prev]);
-  };
+  const addItem = useCallback((text: string, iconName?: string, color?: string) => {
+    setItems(prev => {
+      // Avoid duplicates for quick add
+      if (prev.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return prev;
 
-  const removeItem = (e: React.MouseEvent, id: string) => {
+      return [{
+        id: Date.now().toString(),
+        text,
+        completed: false,
+        icon: iconName,
+        color
+      }, ...prev];
+    });
+  }, []);
+
+  const removeItem = useCallback((e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     setItems(prev => prev.filter(item => item.id !== id));
-  };
+  }, []);
 
-  const clearCompleted = () => {
+  const clearCompleted = useCallback(() => {
     setItems(prev => prev.filter(i => !i.completed));
-  };
+  }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggleItem(id);
-    }
-  };
+  // Optimize: Create a set of active item texts for O(1) lookup in the render loop
+  const activeItemTexts = useMemo(() => {
+    return new Set(items.filter(i => !i.completed).map(i => i.text.toLowerCase()));
+  }, [items]);
 
   return (
     <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2 flex flex-col gap-6">
@@ -154,7 +215,7 @@ const ShoppingListWidget: React.FC = () => {
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 px-1">Quick Add</span>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {QUICK_ADD_ITEMS.map((preset) => {
-            const isActive = items.some(i => i.text.toLowerCase() === preset.text.toLowerCase() && !i.completed);
+            const isActive = activeItemTexts.has(preset.text.toLowerCase());
 
             return (
               <button
@@ -191,49 +252,14 @@ const ShoppingListWidget: React.FC = () => {
           </div>
         ) : (
           <ul className="space-y-2">
-            {items.map((item) => {
-              const Icon = item.icon ? ICON_MAP[item.icon] : null;
-              return (
-                <li
-                  key={item.id}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-2xl active:scale-[0.98] transition-all border border-transparent active:border-white/10 group"
-                >
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => toggleItem(item.id)}
-                    onKeyDown={(e) => handleKeyDown(e, item.id)}
-                    aria-label={item.text}
-                    aria-pressed={item.completed}
-                    className="flex-1 flex items-center gap-4 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-lg"
-                  >
-                    <div className="relative">
-                      {item.completed ? (
-                        <CheckCircle2 className="text-green-400 shrink-0" size={28} />
-                      ) : (
-                        <Circle className="text-gray-600 shrink-0" size={28} />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {Icon && <Icon size={20} className={`text-${item.color}-400/60`} />}
-                      <span className={`text-xl font-light transition-all ${
-                        item.completed ? 'line-through text-gray-500 italic' : 'text-gray-100'
-                      }`}>
-                        {item.text}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={(e) => removeItem(e, item.id)}
-                    className="p-2 text-gray-600 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg ml-2"
-                    aria-label={`Remove ${item.text}`}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </li>
-              );
-            })}
+            {items.map((item) => (
+              <ShoppingListItem
+                key={item.id}
+                item={item}
+                onToggle={toggleItem}
+                onRemove={removeItem}
+              />
+            ))}
           </ul>
         )}
       </div>
