@@ -67,13 +67,17 @@ const ShoppingListWidget: React.FC = () => {
     ));
   };
 
+  const isListFull = items.length >= 100;
+
   const addItem = (text: string, iconName?: string, color?: string) => {
+    if (isListFull) return;
+
     // Avoid duplicates for quick add
     if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
     
     setItems(prev => [{
       id: Date.now().toString(),
-      text,
+      text: text.slice(0, 50),
       completed: false,
       icon: iconName,
       color
@@ -131,6 +135,7 @@ const ShoppingListWidget: React.FC = () => {
             <input
               autoFocus
               type="text"
+              maxLength={50}
               value={newItemText}
               onChange={(e) => setNewItemText(e.target.value)}
               placeholder="What do you need?"
@@ -139,7 +144,7 @@ const ShoppingListWidget: React.FC = () => {
             />
             <button
               type="submit"
-              disabled={!newItemText.trim()}
+              disabled={!newItemText.trim() || isListFull}
               className="px-4 bg-blue-500/20 text-blue-400 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500/30 transition-colors"
               aria-label="Confirm add item"
             >
@@ -155,14 +160,19 @@ const ShoppingListWidget: React.FC = () => {
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {QUICK_ADD_ITEMS.map((preset) => {
             const isActive = items.some(i => i.text.toLowerCase() === preset.text.toLowerCase() && !i.completed);
+            const isDisabled = isActive || isListFull;
+
+            let label = `Quick add ${preset.text}`;
+            if (isActive) label = `${preset.text} (Added)`;
+            else if (isListFull) label = `${preset.text} (List full)`;
 
             return (
               <button
                 key={preset.text}
                 onClick={() => addItem(preset.text, preset.iconName, preset.color)}
-                disabled={isActive}
-                aria-label={isActive ? `${preset.text} (Added)` : `Quick add ${preset.text}`}
-                className={`flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform ${isActive ? 'opacity-50 cursor-default' : ''}`}
+                disabled={isDisabled}
+                aria-label={label}
+                className={`flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform ${isDisabled ? 'opacity-50 cursor-default' : ''}`}
               >
                 <div className={`relative p-4 rounded-2xl bg-${preset.color}-500/10 border border-${preset.color}-500/20 group-active:bg-${preset.color}-500/20`}>
                   <preset.icon className={`text-${preset.color}-400`} size={32} />

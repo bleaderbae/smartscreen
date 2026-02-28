@@ -11,6 +11,7 @@ describe('dailyFeedService Security', () => {
 
   describe('Fetch Configuration (DoS Prevention)', () => {
     it('calls NASA API with timeout and size limits', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any).mockResolvedValue({ data: {} });
 
       await getNASAData();
@@ -25,6 +26,7 @@ describe('dailyFeedService Security', () => {
     });
 
     it('calls Dog API with timeout and size limits', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any).mockResolvedValue({ data: {} });
 
       await getDogData();
@@ -53,7 +55,9 @@ describe('dailyFeedService Security', () => {
   describe('Error Handling', () => {
     it('handles timeout errors gracefully (NASA)', async () => {
       const timeoutError = new Error('timeout of 10000ms exceeded');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (timeoutError as any).code = 'ECONNABORTED';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any).mockRejectedValue(timeoutError);
 
       const result = await getNASAData();
@@ -63,6 +67,7 @@ describe('dailyFeedService Security', () => {
 
     it('handles large response errors gracefully (NASA)', async () => {
       const sizeError = new Error('maxContentLength size of 5242880 exceeded');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any).mockRejectedValue(sizeError);
 
       const result = await getNASAData();
