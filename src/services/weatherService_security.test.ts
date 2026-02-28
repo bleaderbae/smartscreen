@@ -6,6 +6,7 @@ vi.mock('axios', () => {
   return {
     default: {
       get: vi.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       isAxiosError: (payload: any) => payload?.isAxiosError === true,
     },
   };

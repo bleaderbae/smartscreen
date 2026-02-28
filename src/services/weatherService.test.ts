@@ -6,6 +6,7 @@ vi.mock('axios', () => {
   return {
     default: {
       get: vi.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       isAxiosError: (payload: any) => payload?.isAxiosError === true,
     },
   };
@@ -125,7 +126,7 @@ describe('getWeather', () => {
   it('correctly sets high and low temperatures for nighttime forecast', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast2',
       },
     };
 
@@ -170,7 +171,7 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    const data = await getWeather(40.7128, -74.0060);
+    const data = await getWeather(40.7129, -74.0060);
 
     expect(data.high).toBe(75);
     expect(data.low).toBe(55);
@@ -188,7 +189,7 @@ describe('getWeather', () => {
   it('handles forecast fetch failure', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast3',
       },
     };
 
@@ -205,13 +206,13 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('Failed to fetch forecast: Internal Server Error');
+    await expect(getWeather(40.7130, -74.0060)).rejects.toThrow('Failed to fetch forecast: Internal Server Error');
   });
 
   it('handles empty forecast periods', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast4',
       },
     };
 
@@ -231,13 +232,13 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('No forecast data available');
+    await expect(getWeather(40.7131, -74.0060)).rejects.toThrow('No forecast data available');
   });
 
   it('caches grid point URL for subsequent calls', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast5',
       },
     };
 

@@ -199,4 +199,46 @@ describe('ShoppingListWidget', () => {
     // Check if default items are rendered (fallback logic)
     expect(screen.getAllByText('Milk').length).toBeGreaterThan(0);
   });
+
+  it('enforces a maximum length of 50 characters on the text input', () => {
+    render(<ShoppingListWidget />);
+
+    // Open add form
+    fireEvent.click(screen.getByRole('button', { name: /Add item/i }));
+
+    const input = screen.getByRole('textbox', { name: /New item name/i });
+    expect(input).toHaveAttribute('maxLength', '50');
+  });
+
+  it('prevents adding more than 100 items', () => {
+    // Generate 100 items
+    const items = Array.from({ length: 100 }, (_, i) => ({
+      id: String(i),
+      text: `Item ${i}`,
+      completed: false
+    }));
+    localStorage.setItem('shopping-list', JSON.stringify(items));
+
+    render(<ShoppingListWidget />);
+
+    // Check that Quick Add buttons are disabled and label is updated
+    const milkQuickAdd = screen.getByRole('button', { name: /Milk \(List full\)/i });
+    expect(milkQuickAdd).toBeInTheDocument();
+    expect(milkQuickAdd).toBeDisabled();
+
+    // Check that manual add is disabled
+    fireEvent.click(screen.getByRole('button', { name: /Add item/i }));
+
+    // Type a new item
+    const input = screen.getByRole('textbox', { name: /New item name/i });
+    fireEvent.change(input, { target: { value: 'New Item' } });
+
+    // Submit button should be disabled
+    const confirmButton = screen.getByRole('button', { name: /Confirm add item/i });
+    expect(confirmButton).toBeDisabled();
+
+    // The list should still have 100 items (no more were added)
+    const listItems = screen.getAllByRole('listitem');
+    expect(listItems.length).toBe(100);
+  });
 });
