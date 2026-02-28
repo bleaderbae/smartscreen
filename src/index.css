@@ -13,6 +13,11 @@ body {
   background-color: #000;
 }
 
+button {
+  background-color: transparent;
+  border: none;
+}
+
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;

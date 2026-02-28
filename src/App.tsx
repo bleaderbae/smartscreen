@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { getWeather, type WeatherData } from './services/weatherService';
 import { fetchCalendarEvents, type CalendarEvent } from './services/calendarService';
-import { DEFAULT_COORDINATES, FAMILY_PROFILES, CALENDAR_URLS } from './config';
+import { DEFAULT_COORDINATES, CALENDAR_URLS } from './config';
 import DailyFeedWidget from './components/DailyFeedWidget';
 import ShoppingListWidget from './components/ShoppingListWidget';
 import WeatherWidget from './components/WeatherWidget';
@@ -89,9 +89,24 @@ const App: React.FC = () => {
 
         {/* Bottom Navigation / Apps */}
         <div className="mt-8 mb-4 bg-gray-900/80 backdrop-blur-md rounded-full p-4 flex justify-around items-center border border-gray-800">
-          <Home className="text-blue-400 active:scale-90 transition-transform cursor-pointer" size={28} />
-          <User className="text-gray-500 active:scale-90 transition-transform cursor-pointer" size={28} />
-          <Settings className="text-gray-500 active:scale-90 transition-transform cursor-pointer" size={28} />
+          <button
+            aria-label="Home"
+            className="p-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-90 transition-transform cursor-pointer flex items-center justify-center bg-transparent border-none"
+          >
+            <Home className="text-blue-400" size={28} />
+          </button>
+          <button
+            aria-label="User Profiles"
+            className="p-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-90 transition-transform cursor-pointer flex items-center justify-center bg-transparent border-none"
+          >
+            <User className="text-gray-500 hover:text-gray-400 transition-colors" size={28} />
+          </button>
+          <button
+            aria-label="Settings"
+            className="p-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-90 transition-transform cursor-pointer flex items-center justify-center bg-transparent border-none"
+          >
+            <Settings className="text-gray-500 hover:text-gray-400 transition-colors" size={28} />
+          </button>
         </div>
       </div>
     </div>
