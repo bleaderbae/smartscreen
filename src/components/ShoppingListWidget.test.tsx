@@ -199,4 +199,24 @@ describe('ShoppingListWidget', () => {
     // Check if default items are rendered (fallback logic)
     expect(screen.getAllByText('Milk').length).toBeGreaterThan(0);
   });
+
+  it('enforces list size cap of 100 items', () => {
+    // Generate 100 items
+    const manyItems = Array.from({ length: 100 }, (_, i) => ({
+      id: `id-${i}`,
+      text: `Item ${i}`,
+      completed: false
+    }));
+    localStorage.setItem('shopping-list', JSON.stringify(manyItems));
+
+    render(<ShoppingListWidget />);
+
+    // The Add button should be disabled because the list is full
+    const addButton = screen.getByRole('button', { name: /^List full$/i });
+    expect(addButton).toBeDisabled();
+
+    // Quick add items should also be disabled and say "List full"
+    const eggsQuickAdd = screen.getByRole('button', { name: /Eggs \(List full\)/i });
+    expect(eggsQuickAdd).toBeDisabled();
+  });
 });

@@ -68,6 +68,8 @@ const ShoppingListWidget: React.FC = () => {
   };
 
   const addItem = (text: string, iconName?: string, color?: string) => {
+    if (items.length >= 100) return; // Client-side DoS protection
+
     // Avoid duplicates for quick add
     if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
     
@@ -96,6 +98,8 @@ const ShoppingListWidget: React.FC = () => {
     }
   };
 
+  const isListFull = items.length >= 100;
+
   return (
     <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 col-span-2 flex flex-col gap-6">
       <div className="flex justify-between items-center">
@@ -107,8 +111,9 @@ const ShoppingListWidget: React.FC = () => {
         </div>
         <button 
           onClick={() => setIsAdding(!isAdding)}
-          className={`p-2 rounded-full text-blue-400 active:scale-90 transition-all ${isAdding ? 'bg-blue-500/20 rotate-45' : 'bg-white/5'}`}
-          aria-label={isAdding ? "Cancel adding item" : "Add item"}
+          disabled={isListFull && !isAdding}
+          className={`p-2 rounded-full text-blue-400 active:scale-90 transition-all ${isAdding ? 'bg-blue-500/20 rotate-45' : 'bg-white/5'} ${isListFull && !isAdding ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label={isAdding ? "Cancel adding item" : isListFull ? "List full" : "Add item"}
           aria-expanded={isAdding}
         >
           <Plus size={24} />
@@ -119,7 +124,7 @@ const ShoppingListWidget: React.FC = () => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (newItemText.trim()) {
+            if (newItemText.trim() && !isListFull) {
               addItem(newItemText.trim());
               setNewItemText('');
               setIsAdding(false);
@@ -131,15 +136,17 @@ const ShoppingListWidget: React.FC = () => {
             <input
               autoFocus
               type="text"
+              maxLength={50}
               value={newItemText}
               onChange={(e) => setNewItemText(e.target.value)}
-              placeholder="What do you need?"
-              className="flex-1 bg-white/10 rounded-xl px-4 py-3 text-lg text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-400 border border-white/5"
+              placeholder={isListFull ? "List is full (max 100 items)" : "What do you need?"}
+              disabled={isListFull}
+              className="flex-1 bg-white/10 rounded-xl px-4 py-3 text-lg text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-400 border border-white/5 disabled:opacity-50"
               aria-label="New item name"
             />
             <button
               type="submit"
-              disabled={!newItemText.trim()}
+              disabled={!newItemText.trim() || isListFull}
               className="px-4 bg-blue-500/20 text-blue-400 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500/30 transition-colors"
               aria-label="Confirm add item"
             >
@@ -155,14 +162,15 @@ const ShoppingListWidget: React.FC = () => {
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {QUICK_ADD_ITEMS.map((preset) => {
             const isActive = items.some(i => i.text.toLowerCase() === preset.text.toLowerCase() && !i.completed);
+            const isDisabled = isActive || isListFull;
 
             return (
               <button
                 key={preset.text}
                 onClick={() => addItem(preset.text, preset.iconName, preset.color)}
-                disabled={isActive}
-                aria-label={isActive ? `${preset.text} (Added)` : `Quick add ${preset.text}`}
-                className={`flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform ${isActive ? 'opacity-50 cursor-default' : ''}`}
+                disabled={isDisabled}
+                aria-label={isActive ? `${preset.text} (Added)` : isListFull ? `${preset.text} (List full)` : `Quick add ${preset.text}`}
+                className={`flex flex-col items-center gap-2 shrink-0 group active:scale-90 transition-transform ${isDisabled ? 'opacity-50 cursor-default' : ''}`}
               >
                 <div className={`relative p-4 rounded-2xl bg-${preset.color}-500/10 border border-${preset.color}-500/20 group-active:bg-${preset.color}-500/20`}>
                   <preset.icon className={`text-${preset.color}-400`} size={32} />
