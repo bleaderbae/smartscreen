@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { getWeather, type WeatherData } from './services/weatherService';
 import { fetchCalendarEvents, type CalendarEvent } from './services/calendarService';
-import { DEFAULT_COORDINATES, FAMILY_PROFILES, CALENDAR_URLS } from './config';
+import { DEFAULT_COORDINATES, CALENDAR_URLS } from './config';
 import DailyFeedWidget from './components/DailyFeedWidget';
 import ShoppingListWidget from './components/ShoppingListWidget';
 import WeatherWidget from './components/WeatherWidget';

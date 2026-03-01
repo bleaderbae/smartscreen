@@ -62,8 +62,8 @@ export function getWeatherIconFromUrl(iconUrl: string): WeatherData['weatherIcon
 }
 
 // Cache for grid points and forecasts to avoid redundant API calls
-const pointsCache = new Map<string, string>();
-const forecastCache = new Map<string, { data: ForecastResponse; timestamp: number }>();
+export const pointsCache = new Map<string, string>();
+export const forecastCache = new Map<string, { data: ForecastResponse; timestamp: number }>();
 const MAX_CACHE_SIZE = 100;
 const FORECAST_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 

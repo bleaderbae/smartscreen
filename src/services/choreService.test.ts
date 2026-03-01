@@ -3,6 +3,7 @@ import { getChoresForDate, type Chore } from './choreService';
 import { parseISO } from 'date-fns';
 
 // Mock icon as any since logic doesn't depend on it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockIcon: any = () => null;
 
 const MOCK_CHORES: Chore[] = [
