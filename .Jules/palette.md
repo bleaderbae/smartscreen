@@ -30,3 +30,7 @@
 ## 2026-02-24 - False Affordances in Cards
 **Learning:** Widgets that use `role="button"` and pointer cursors but lack actual interactivity confuse users (especially screen reader users) who expect an action.
 **Action:** Always implement a meaningful action (like expanding for details) for card-like widgets that appear interactive, or remove the interactive semantics if it's purely display.
+
+## 2026-03-05 - Focus Visible on Toggle Buttons
+**Learning:** Custom toggle buttons (e.g., "Show All" vs "Show Today" views) often lack `focus-visible` styling, making keyboard navigation difficult to track for users who rely on it.
+**Action:** Always ensure interactive elements like buttons have explicit `focus-visible:ring-2` (and `outline-none`) classes to provide clear visual focus indicators, and pair them with `aria-pressed` to communicate the active state.

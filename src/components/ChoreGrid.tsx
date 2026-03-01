@@ -78,7 +78,8 @@ const ChoreGrid: React.FC = () => {
         
         <button 
           onClick={() => setViewAll(!viewMode)}
-          className="px-4 py-2 bg-gray-800/50 rounded-full text-xs font-semibold uppercase tracking-widest text-gray-400 active:scale-95 transition-transform border border-gray-700"
+          aria-pressed={viewMode}
+          className="px-4 py-2 bg-gray-800/50 rounded-full text-xs font-semibold uppercase tracking-widest text-gray-400 active:scale-95 transition-transform border border-gray-700 focus-visible:ring-2 focus-visible:ring-purple-400 outline-none"
         >
           {viewMode ? 'Show Today' : 'Show All'}
         </button>
