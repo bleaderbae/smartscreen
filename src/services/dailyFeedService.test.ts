@@ -19,6 +19,7 @@ describe('dailyFeedService', () => {
         media_type: 'image'
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any).mockResolvedValue({
         data: mockResponse,
       });
@@ -36,6 +37,7 @@ describe('dailyFeedService', () => {
     });
 
     it('returns fallback data on failure', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any).mockRejectedValue(new Error('Internal Server Error'));
 
       const result = await getNASAData();
@@ -43,6 +45,7 @@ describe('dailyFeedService', () => {
     });
 
     it('calls axios with correct URL and API key in params', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any).mockResolvedValue({
         data: {}
       });
@@ -64,6 +67,7 @@ describe('dailyFeedService', () => {
 
   describe('getDogData', () => {
     it('returns combined Dog data on success', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any)
         .mockResolvedValueOnce({ // Dog Image
           data: { message: 'http://dog.com/dog.jpg', status: 'success' }
@@ -84,6 +88,7 @@ describe('dailyFeedService', () => {
     });
 
     it('returns fallback data on failure', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (axios.get as any).mockRejectedValue(new Error('Network error'));
 
       const result = await getDogData();

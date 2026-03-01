@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import axios from 'axios';
-import { getWeather, getWeatherIconFromUrl } from './weatherService';
+import { getWeather, getWeatherIconFromUrl, pointsCache, forecastCache } from './weatherService';
 
 vi.mock('axios', () => {
   return {
     default: {
       get: vi.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       isAxiosError: (payload: any) => payload?.isAxiosError === true,
     },
   };
@@ -37,6 +38,8 @@ describe('getWeatherIconFromUrl', () => {
 describe('getWeather', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    pointsCache.clear();
+    forecastCache.clear();
   });
 
   afterEach(() => {
