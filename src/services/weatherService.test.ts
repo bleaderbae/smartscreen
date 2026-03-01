@@ -125,7 +125,7 @@ describe('getWeather', () => {
   it('correctly sets high and low temperatures for nighttime forecast', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast_nighttime',
       },
     };
 
@@ -170,7 +170,7 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    const data = await getWeather(40.7128, -74.0060);
+    const data = await getWeather(40.7129, -74.0061);
 
     expect(data.high).toBe(75);
     expect(data.low).toBe(55);
@@ -188,7 +188,7 @@ describe('getWeather', () => {
   it('handles forecast fetch failure', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast_fail',
       },
     };
 
@@ -205,13 +205,13 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('Failed to fetch forecast: Internal Server Error');
+    await expect(getWeather(40.7130, -74.0062)).rejects.toThrow('Failed to fetch forecast: Internal Server Error');
   });
 
   it('handles empty forecast periods', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast_empty',
       },
     };
 
@@ -231,13 +231,13 @@ describe('getWeather', () => {
       return Promise.reject(new Error('Unknown URL'));
     });
 
-    await expect(getWeather(40.7128, -74.0060)).rejects.toThrow('No forecast data available');
+    await expect(getWeather(40.7131, -74.0063)).rejects.toThrow('No forecast data available');
   });
 
   it('caches grid point URL for subsequent calls', async () => {
     const mockPointsResponse = {
       properties: {
-        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast',
+        forecast: 'https://api.weather.gov/gridpoints/OKX/33,35/forecast_cache',
       },
     };
 
@@ -272,8 +272,8 @@ describe('getWeather', () => {
 
     // First call: should fetch points + forecast
     // Use unique coordinates to ensure cache miss (since other tests might populate cache for default coords)
-    const lat = 41.0000;
-    const long = -75.0000;
+    const lat = 41.0001;
+    const long = -75.0001;
 
     await getWeather(lat, long);
     expect(axios.get).toHaveBeenCalledTimes(2);

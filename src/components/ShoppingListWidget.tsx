@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShoppingCart, 
   Plus, 
@@ -61,6 +61,17 @@ const ShoppingListWidget: React.FC = () => {
     localStorage.setItem('shopping-list', JSON.stringify(items));
   }, [items]);
 
+  // Memoize active item texts to O(1) set for fast lookups in render loop
+  const activeItemTexts = useMemo(() => {
+    const active = new Set<string>();
+    items.forEach(i => {
+      if (!i.completed) {
+        active.add(i.text.toLowerCase());
+      }
+    });
+    return active;
+  }, [items]);
+
   const toggleItem = (id: string) => {
     setItems(prev => prev.map(item => 
       item.id === id ? { ...item, completed: !item.completed } : item
@@ -69,7 +80,7 @@ const ShoppingListWidget: React.FC = () => {
 
   const addItem = (text: string, iconName?: string, color?: string) => {
     // Avoid duplicates for quick add
-    if (items.find(i => i.text.toLowerCase() === text.toLowerCase() && !i.completed)) return;
+    if (activeItemTexts.has(text.toLowerCase())) return;
     
     setItems(prev => [{
       id: Date.now().toString(),
@@ -154,7 +165,7 @@ const ShoppingListWidget: React.FC = () => {
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 px-1">Quick Add</span>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {QUICK_ADD_ITEMS.map((preset) => {
-            const isActive = items.some(i => i.text.toLowerCase() === preset.text.toLowerCase() && !i.completed);
+            const isActive = activeItemTexts.has(preset.text.toLowerCase());
 
             return (
               <button
